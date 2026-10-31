@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { AuthProvider } from '@/components/context/AuthContext';
 import { CartProvider } from '@/components/context/CartContext';
@@ -6,6 +6,13 @@ import { WishlistProvider } from '@/components/context/WishlistContext';
 import AnnouncementBar from '@/components/layout/AnnouncementBar';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: 'cover',
+};
 
 export const metadata: Metadata = {
   title: 'دار العسل والزيتون | DAR EL ASAL & OLIVE — فخامة الطبيعة بأنقى صورها',
@@ -27,7 +34,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ar" dir="rtl" className="scroll-smooth">
+    <html lang="ar" dir="rtl" className="scroll-smooth overflow-x-hidden">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -36,7 +43,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="font-cairo bg-[#fcfaf6] text-[#1d1d1f] min-h-screen flex flex-col antialiased">
+      <body className="font-cairo bg-[#fcfaf6] text-[#1d1d1f] min-h-screen flex flex-col antialiased overflow-x-hidden w-full max-w-full">
         <AuthProvider>
           <CartProvider>
             <WishlistProvider>

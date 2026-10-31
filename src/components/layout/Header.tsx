@@ -56,8 +56,8 @@ export default function Header() {
         <div className="flex items-center justify-between h-20 gap-4">
           
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 shrink-0 group">
-            <div className="relative h-12 w-48 sm:w-56 overflow-hidden">
+          <Link href="/" className="flex items-center gap-2 sm:gap-3 shrink-0 group">
+            <div className="relative h-9 sm:h-12 w-36 xs:w-44 sm:w-56 overflow-hidden">
               <img
                 src="/images/dar-logo-full.jpg"
                 alt="دار العسل والزيتون | DAR EL ASAL & OLIVE"
