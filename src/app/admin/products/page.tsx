@@ -124,6 +124,9 @@ export default function AdminProductsPage() {
     reader.readAsDataURL(file);
   };
 
+  const imageInputRef = React.useRef<HTMLInputElement>(null);
+  const videoInputRef = React.useRef<HTMLInputElement>(null);
+
   const openAddModal = () => {
     setEditingProduct(null);
     setName('');
@@ -139,7 +142,7 @@ export default function AdminProductsPage() {
     setDescription('');
     setShortDescription('');
     setIngredients('');
-    setImageUrl('/images/honey/prod-honey-plain.jpg');
+    setImageUrl('');
     setVideoUrl('');
     setModalOpen(true);
   };
@@ -458,122 +461,157 @@ export default function AdminProductsPage() {
 
               {/* Device Media Uploaders: Images & Videos */}
               <div className="space-y-4 p-4 rounded-2xl bg-ivory-50/80 border border-ivory-200">
+                <input
+                  ref={imageInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  style={{ display: 'none' }}
+                />
+                <input
+                  ref={videoInputRef}
+                  type="file"
+                  accept="video/*"
+                  onChange={handleVideoUpload}
+                  style={{ display: 'none' }}
+                />
+
                 <div className="flex items-center justify-between border-b border-ivory-200 pb-2">
-                  <span className="font-bold text-forest-950 flex items-center gap-1.5">
+                  <span className="font-bold text-forest-950 flex items-center gap-1.5 text-sm">
                     <UploadCloud className="w-4 h-4 text-forest-800" />
-                    <span>وسائط المنتج من جهازك (موبايل أو كمبيوتر)</span>
+                    <span>رفع وسائط المنتج من جهازك (موبايل أو كمبيوتر)</span>
                   </span>
-                  <span className="text-[10px] text-gray-400">مباشرة من الكاميرا أو المعرض</span>
+                  <span className="text-[11px] text-emerald-800 font-bold">✓ بدون الحاجة لأي روابط خارجية</span>
                 </div>
 
-                {/* Photo Upload from Device */}
-                <div>
-                  <label className="block font-bold text-forest-950 mb-1.5 flex items-center justify-between">
-                    <span className="flex items-center gap-1.5">
-                      <ImageIcon className="w-3.5 h-3.5 text-forest-800" />
+                {/* Photo Upload Card */}
+                <div className="bg-white p-4 rounded-2xl border border-ivory-300 shadow-sm space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-forest-950 text-xs flex items-center gap-1.5">
+                      <ImageIcon className="w-4 h-4 text-forest-800" />
                       <span>صورة المنتج الرئيسية *</span>
                     </span>
-                    {uploadingImage && <span className="text-[11px] text-amber-700 animate-pulse font-bold">جارٍ معالجة الصورة...</span>}
-                  </label>
+                    {uploadingImage && (
+                      <span className="text-xs text-amber-700 font-bold animate-pulse">
+                        جارٍ معالجة الصورة من الجهاز...
+                      </span>
+                    )}
+                  </div>
 
                   {imageUrl ? (
-                    <div className="flex items-center gap-3 p-2.5 bg-white rounded-xl border border-ivory-200 shadow-sm">
-                      <div className="relative w-16 h-16 rounded-lg overflow-hidden border border-ivory-200 shrink-0 bg-ivory-50">
+                    <div className="flex flex-col sm:flex-row items-center gap-4 p-3 bg-ivory-50 rounded-xl border border-ivory-200">
+                      <div className="relative w-24 h-24 rounded-xl overflow-hidden border border-ivory-300 shrink-0 bg-white shadow-sm">
                         <Image src={imageUrl} alt="" fill className="object-cover" />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-bold text-forest-950 text-xs truncate">تم اختيار الصورة بنجاح ✓</p>
-                        <p className="text-[11px] text-emerald-700">جاهزة للعرض والحفظ في المتجر</p>
-                      </div>
-                      <label className="cursor-pointer px-3 py-1.5 rounded-lg bg-ivory-100 hover:bg-ivory-200 text-forest-900 font-bold text-[11px] transition-colors">
-                        <span>تغيير</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageUpload}
-                          className="hidden"
-                        />
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => setImageUrl('')}
-                        className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50"
-                        title="حذف الصورة"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ) : (
-                    <label className="flex flex-col items-center justify-center border-2 border-dashed border-ivory-300 hover:border-forest-700 rounded-xl p-4 cursor-pointer bg-white transition-all text-center group">
-                      <UploadCloud className="w-6 h-6 text-gray-400 group-hover:text-forest-800 mb-1 transition-colors" />
-                      <span className="font-bold text-forest-950 text-xs">
-                        اضغط لرفع صورة من جهازك (كمبيوتر أو كاميرا/استوديو الموبايل)
-                      </span>
-                      <span className="text-[10px] text-gray-400 mt-0.5">JPG, PNG, WebP</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        className="hidden"
-                      />
-                    </label>
-                  )}
-                </div>
-
-                {/* Video Upload from Device */}
-                <div>
-                  <label className="block font-bold text-forest-950 mb-1.5 flex items-center justify-between">
-                    <span className="flex items-center gap-1.5">
-                      <Film className="w-3.5 h-3.5 text-forest-800" />
-                      <span>فيديو توضيحي للمنتج (اختياري)</span>
-                    </span>
-                    {uploadingVideo && <span className="text-[11px] text-amber-700 animate-pulse font-bold">جارٍ معالجة الفيديو...</span>}
-                  </label>
-
-                  {videoUrl ? (
-                    <div className="space-y-2 p-2.5 bg-white rounded-xl border border-ivory-200 shadow-sm">
-                      <video
-                        src={videoUrl}
-                        controls
-                        className="w-full max-h-48 rounded-lg bg-black object-contain"
-                      />
-                      <div className="flex items-center justify-between pt-1">
-                        <span className="text-[11px] text-emerald-700 font-bold">تم تحميل مقطع الفيديو بنجاح ✓</span>
-                        <div className="flex items-center gap-2">
-                          <label className="cursor-pointer px-3 py-1 rounded-lg bg-ivory-100 hover:bg-ivory-200 text-forest-900 font-bold text-[11px]">
-                            <span>تغيير الفيديو</span>
-                            <input
-                              type="file"
-                              accept="video/*"
-                              onChange={handleVideoUpload}
-                              className="hidden"
-                            />
-                          </label>
+                      <div className="flex-1 text-center sm:text-right space-y-2">
+                        <p className="font-bold text-forest-950 text-xs">تم اختيار صورة المنتج بنجاح ✓</p>
+                        <p className="text-[11px] text-gray-500">جاهزة للعرض والحفظ في المتجر والطلبات.</p>
+                        <div className="flex items-center justify-center sm:justify-start gap-2 pt-1">
                           <button
                             type="button"
-                            onClick={() => setVideoUrl('')}
-                            className="p-1 rounded-lg text-rose-600 hover:bg-rose-50"
-                            title="إزالة الفيديو"
+                            onClick={() => imageInputRef.current?.click()}
+                            className="px-4 py-2 rounded-xl bg-forest-900 text-white font-bold text-xs hover:bg-forest-800 transition-all flex items-center gap-1.5 shadow-sm"
                           >
-                            <X className="w-4 h-4" />
+                            <UploadCloud className="w-3.5 h-3.5" />
+                            <span>تغيير الصورة من الجهاز</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setImageUrl('')}
+                            className="px-3 py-2 rounded-xl bg-rose-50 text-rose-600 font-bold text-xs hover:bg-rose-100 border border-rose-200 transition-all"
+                          >
+                            حذف
                           </button>
                         </div>
                       </div>
                     </div>
                   ) : (
-                    <label className="flex flex-col items-center justify-center border-2 border-dashed border-ivory-300 hover:border-forest-700 rounded-xl p-3.5 cursor-pointer bg-white transition-all text-center group">
-                      <Video className="w-5 h-5 text-gray-400 group-hover:text-forest-800 mb-1 transition-colors" />
-                      <span className="font-bold text-forest-950 text-xs">
-                        اضغط لرفع فيديو للمنتج من جهازك (مقطع سكب العسل، الفحص المخبري، التغليف)
+                    <div
+                      onClick={() => imageInputRef.current?.click()}
+                      className="border-2 border-dashed border-forest-600/40 hover:border-forest-800 bg-forest-50/30 hover:bg-forest-50/60 rounded-2xl p-6 text-center cursor-pointer transition-all space-y-2"
+                    >
+                      <div className="w-12 h-12 rounded-full bg-forest-100 text-forest-900 mx-auto flex items-center justify-center">
+                        <UploadCloud className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <button
+                          type="button"
+                          className="px-5 py-2.5 rounded-xl bg-forest-900 text-white font-bold text-xs shadow-sm hover:bg-forest-800"
+                        >
+                          📷 اضغط هنا لاختيار صورة من جهازك أو الكاميرا
+                        </button>
+                      </div>
+                      <p className="text-[11px] text-gray-500">
+                        يدعم ملفات JPG, PNG, WebP مباشرة من استوديو الموبايل أو الكمبيوتر
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Video Upload Card */}
+                <div className="bg-white p-4 rounded-2xl border border-ivory-300 shadow-sm space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-forest-950 text-xs flex items-center gap-1.5">
+                      <Film className="w-4 h-4 text-forest-800" />
+                      <span>فيديو توضيحي للمنتج (اختياري)</span>
+                    </span>
+                    {uploadingVideo && (
+                      <span className="text-xs text-amber-700 font-bold animate-pulse">
+                        جارٍ معالجة مقطع الفيديو...
                       </span>
-                      <span className="text-[10px] text-gray-400 mt-0.5">MP4, WebM, MOV حتى 25 ميجابايت</span>
-                      <input
-                        type="file"
-                        accept="video/*"
-                        onChange={handleVideoUpload}
-                        className="hidden"
+                    )}
+                  </div>
+
+                  {videoUrl ? (
+                    <div className="space-y-3 p-3 bg-ivory-50 rounded-xl border border-ivory-200">
+                      <video
+                        src={videoUrl}
+                        controls
+                        playsInline
+                        className="w-full max-h-56 rounded-xl bg-black object-contain shadow-inner"
                       />
-                    </label>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-emerald-800">
+                          تم تحميل مقطع الفيديو بنجاح ✓
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => videoInputRef.current?.click()}
+                            className="px-3.5 py-1.5 rounded-xl bg-forest-900 text-white font-bold text-xs hover:bg-forest-800"
+                          >
+                            تغيير الفيديو
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setVideoUrl('')}
+                            className="px-3 py-1.5 rounded-xl bg-rose-50 text-rose-600 font-bold text-xs hover:bg-rose-100 border border-rose-200"
+                          >
+                            إزالة الفيديو
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      onClick={() => videoInputRef.current?.click()}
+                      className="border-2 border-dashed border-amber-500/40 hover:border-amber-600 bg-amber-50/20 hover:bg-amber-50/50 rounded-2xl p-5 text-center cursor-pointer transition-all space-y-2"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-900 mx-auto flex items-center justify-center">
+                        <Video className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <button
+                          type="button"
+                          className="px-5 py-2.5 rounded-xl bg-gold-600 hover:bg-gold-500 text-forest-950 font-bold text-xs shadow-sm"
+                        >
+                          🎬 اضغط هنا لاختيار فيديو من جهازك أو الكاميرا
+                        </button>
+                      </div>
+                      <p className="text-[11px] text-gray-500">
+                        مقطع فيديو لقوام العسل أو التعبئة (MP4, MOV, WebM حتى 25 ميجابايت)
+                      </p>
+                    </div>
                   )}
                 </div>
               </div>
