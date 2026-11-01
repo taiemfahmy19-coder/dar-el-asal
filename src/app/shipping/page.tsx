@@ -8,32 +8,32 @@ export default function ShippingPolicyPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         <div>
           <h1 className="text-2xl sm:text-4xl font-black text-forest-950 font-cairo">
-            سياسة الشحن ومناطق التوصيل والاسترجاع
+            سياسة الشحن ومناطق التوصيل والمعاينة
           </h1>
-          <p className="text-xs text-gray-500 mt-1">توصيل سريع وآمن لجميع المحافظات</p>
+          <p className="text-xs text-gray-500 mt-1">دار العسل والزيتون — التوصيل المبرّد والآمن بنطاق الإسكندرية</p>
         </div>
 
         {/* Delivery Terms */}
         <div className="bg-white rounded-3xl p-8 border border-ivory-200 shadow-subtle space-y-6 text-xs sm:text-sm text-gray-700 leading-relaxed">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="p-4 rounded-2xl bg-forest-50 border border-forest-200 text-forest-950 space-y-1">
-              <span className="font-bold text-sm block">مدة التوصيل المعتادة:</span>
+              <span className="font-bold text-sm block">النطاق الجغرافي الأساسي للتدشين:</span>
               <p className="text-xs text-gray-600">
-                القاهرة والجيزة: 24 إلى 48 ساعة من تأكيد المورد. المحافظات الأخرى: 48 إلى 72 ساعة.
+                مدينة الإسكندرية ومناطقها الرئيسية عبر شركة توصيل مخصصة وسيارات مجهزة، مع جدولة التوسع للقاهرة والمحافظات الأخرى في مراحل لاحقة.
               </p>
             </div>
             <div className="p-4 rounded-2xl bg-gold-50 border border-gold-200 text-gold-950 space-y-1">
-              <span className="font-bold text-sm block">الشحن المجاني:</span>
+              <span className="font-bold text-sm block">احتساب تكلفة الشحن:</span>
               <p className="text-xs text-gray-600">
-                شحن مجاني تلقائي لجميع الطلبات التي تتجاوز 1200 ج.م في القاهرة والجيزة والإسكندرية.
+                يتم تحديد قيمة الشحن بدقة وفق تسعيرة شركة التوصيل المعتمدة حسب عنوان الاستلام، وتُدرج ضمن عرض السعر النهائي المعتمد قبل التأكيد.
               </p>
             </div>
           </div>
 
           <section className="space-y-2">
-            <h3 className="font-bold text-base text-forest-950">سياسة المعاينة والاسترجاع الفوري</h3>
+            <h3 className="font-bold text-base text-forest-950">سياسة المعاينة والاستلام</h3>
             <p>
-              يحق لعملاء بازار معاينة المنتجات عند استلامها من المندوب والتأكد من سلامة التغليف ومطابقة العبوات. في حال وجود أي كسر أو اختلاف عن الوصف، يمكنك رفض الاستلام فوراً دون تحمل أي رسوم.
+              يحق لعملاء دار العسل والزيتون معاينة الطرد مع كابتن التوصيل والتأكد من سلامة العبوات قبل السداد نقداً، حفاظاً على الثقة المتبادلة وضمان وصول المنتج بحالته الطبيعية الأصلية.
             </p>
           </section>
 

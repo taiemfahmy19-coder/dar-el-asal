@@ -73,7 +73,7 @@ export default function SmartPackageWizard() {
         <div className="text-center max-w-3xl mx-auto mb-12 space-y-3">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white border border-[#d2d2d7]/80 text-[#0071e3] text-xs font-medium shadow-sm">
             <Sparkles className="w-3.5 h-3.5 text-[#0071e3]" />
-            <span>البازار الذكي | تجربة مخصصة</span>
+            <span>دار العسل والزيتون | باقة مصممة لك</span>
           </div>
           <h2 className="text-2xl sm:text-4xl font-semibold text-[#1d1d1f] tracking-tight">
             اختار لك: باقتك الطبيعية المصممة لميزانيتك

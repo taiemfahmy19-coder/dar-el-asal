@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
     const result = createOrderServerSide({
       userId: currentUser?.id,
       customerName: body.customerName,
-      customerEmail: body.customerEmail || currentUser?.email || 'guest@bazaar.local',
+      customerEmail: body.customerEmail || currentUser?.email || 'customer@darelasal.eg',
       customerPhone: body.customerPhone,
       governorate: body.governorate,
       city: body.city || body.governorate,

@@ -37,26 +37,20 @@ export default function LoginPage() {
     }
   };
 
-  const fillCredentials = (demoEmail: string) => {
-    setEmail(demoEmail);
-    setPassword('bazaar123456');
-    setError(null);
-  };
-
   return (
     <div className="min-h-[80vh] flex items-center justify-center py-12 px-4 bg-[#f5f5f7] text-right">
       <div className="card max-w-md w-full border border-[#d2d2d7]/50 p-8 sm:p-10 space-y-6 !rounded-[18px]">
         
         {/* Header */}
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-[14px] bg-[#1d1d1f] text-amber-400 flex items-center justify-center mx-auto text-xl font-bold shadow-sm">
-            بـ
+          <div className="w-14 h-14 rounded-[14px] bg-[#143823] text-[#c59b27] flex items-center justify-center mx-auto text-xl font-bold shadow-sm border border-[#c59b27]/40">
+            🍯
           </div>
-          <h1 className="text-2xl font-semibold text-[#1d1d1f] tracking-tight">
-            تسجيل الدخول إلى بازار
+          <h1 className="text-2xl font-bold text-[#1d1d1f] tracking-tight">
+            تسجيل الدخول
           </h1>
           <p className="text-xs text-[#515154]">
-            نظام دخول موحد للعملاء، مناديب التوصيل، وإدارة المتجر
+            دار العسل والزيتون | DAR EL ASAL & OLIVE
           </p>
         </div>
 
@@ -123,53 +117,20 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* Demo Fast Fill Section for Reviewers */}
-        <div className="pt-4 border-t border-[#d2d2d7]/40 space-y-2 text-right">
-          <p className="text-[11px] font-semibold text-[#515154] uppercase tracking-wider text-center">
-            حسابات تجريبية سريعة للمعاينة:
-          </p>
-          <div className="grid grid-cols-3 gap-2 text-[11px]">
-            <button
-              type="button"
-              onClick={() => fillCredentials('admin@bazaar.local')}
-              className="p-2.5 rounded-[12px] bg-[#f5f5f7] hover:bg-gray-200/70 text-[#1d1d1f] font-medium border border-[#d2d2d7]/60 text-center flex flex-col items-center gap-1 transition-all"
-            >
-              <Shield className="w-4 h-4 text-[#c59b27]" />
-              <span>المدير</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => fillCredentials('courier1@bazaar.local')}
-              className="p-2.5 rounded-[12px] bg-[#f5f5f7] hover:bg-gray-200/70 text-[#1d1d1f] font-medium border border-[#d2d2d7]/60 text-center flex flex-col items-center gap-1 transition-all"
-            >
-              <Truck className="w-4 h-4 text-purple-600" />
-              <span>المندوب</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => fillCredentials('customer@bazaar.local')}
-              className="p-2.5 rounded-[12px] bg-[#f5f5f7] hover:bg-gray-200/70 text-[#1d1d1f] font-medium border border-[#d2d2d7]/60 text-center flex flex-col items-center gap-1 transition-all"
-            >
-              <UserCheck className="w-4 h-4 text-emerald-600" />
-              <span>العميل</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Links */}
-        <div className="border-t border-[#d2d2d7]/40 pt-4 flex flex-col items-center gap-2 text-xs text-[#515154] text-center">
+        {/* Public Links - Customers & Delivery only */}
+        <div className="border-t border-[#d2d2d7]/40 pt-4 flex flex-col items-center gap-2.5 text-xs text-[#515154] text-center">
           <p>
             ليس لديك حساب بعد؟{' '}
             <Link href="/auth/register" className="font-semibold text-[#0066cc] hover:underline">
               إنشاء حساب عميل جديد
             </Link>
           </p>
-          <Link
-            href="/delivery/apply"
-            className="text-[11px] font-medium text-emerald-700 hover:underline"
-          >
-            ترغب في العمل معنا؟ التسجيل كعامل توصيل
-          </Link>
+          <div className="text-[11px] text-gray-500 pt-1 border-t border-gray-100 w-full">
+            مندوب توصيل وترغب بالانضمام؟{' '}
+            <Link href="/delivery/apply" className="font-semibold text-[#c59b27] hover:underline">
+              تقديم طلب انضمام كابتن توصيل
+            </Link>
+          </div>
         </div>
 
       </div>

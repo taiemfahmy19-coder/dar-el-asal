@@ -139,6 +139,15 @@ export interface Order {
   assignedAgentName?: string;
   assignedAgentPhone?: string;
   assignedAt?: string;
+
+  // Delivery Scheduling & Quotation Workflow (Directive Sec 7, 10, 11)
+  deliveryDate?: string;
+  deliveryTimeWindow?: string;
+  cancellationDeadline?: string; // 6-hour policy strictly calculated on backend
+  quotationStatus?: 'NOT_ISSUED' | 'PENDING_REVIEW' | 'SENT' | 'ACCEPTED' | 'REJECTED';
+  quotationNumber?: string;
+  quotationSentAt?: string;
+  quotationAcceptedAt?: string;
   
   cancelReason?: string;
   failureReason?: string;

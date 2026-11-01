@@ -67,7 +67,7 @@ export default function Footer() {
             </p>
             <div className="pt-2 text-xs text-gray-400 flex items-center gap-2">
               <CreditCard className="w-4 h-4 text-[#c59b27]" />
-              <span>دفع عند الاستلام | إنستاباي | فيزا وماستركارد</span>
+              <span>الدفع نقداً عند الاستلام (Cash on Delivery)</span>
             </div>
           </div>
 
@@ -89,12 +89,12 @@ export default function Footer() {
               </li>
               <li>
                 <Link href="/#smart-package" className="hover:text-white transition-colors">
-                  باقة اختار لك الذكية
+                  باقة اختار لك المصممة
                 </Link>
               </li>
               <li>
-                <Link href="/products?featured=true" className="hover:text-white transition-colors">
-                  المنتجات الأكثر طلباً
+                <Link href="/products" className="hover:text-white transition-colors">
+                  كافة المنتجات المتاحة
                 </Link>
               </li>
             </ul>
@@ -102,13 +102,13 @@ export default function Footer() {
 
           {/* Customer Service & Policies */}
           <div>
-            <h4 className="text-white font-semibold text-sm mb-4 border-r-2 border-[#0071e3] pr-3 tracking-tight">
+            <h4 className="text-white font-semibold text-sm mb-4 border-r-2 border-[#c59b27] pr-3 tracking-tight">
               خدمة العملاء والسياسات
             </h4>
             <ul className="space-y-2.5 text-xs text-gray-400">
               <li>
                 <Link href="/orders" className="hover:text-white transition-colors">
-                  تتبع حالة الطلب
+                  متابعة وتتبع طلباتي
                 </Link>
               </li>
               <li>
@@ -118,7 +118,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link href="/terms" className="hover:text-white transition-colors">
-                  الشروط والأحكام
+                  الشروط والأحكام وسياسة الإلغاء (6 ساعات)
                 </Link>
               </li>
               <li>
@@ -127,50 +127,39 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/delivery/apply" className="text-emerald-400 hover:text-emerald-300 font-medium transition-colors">
-                  انضم كعامل توصيل (كابتن)
+                <Link href="/delivery/apply" className="text-[#c59b27] hover:underline font-medium transition-colors">
+                  انضم لفريق التوصيل المعتمد
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Contact */}
+          {/* Contact & Business Info */}
           <div>
-            <h4 className="text-white font-semibold text-sm mb-4 border-r-2 border-[#0071e3] pr-3 tracking-tight">
-              تواصل معنا
+            <h4 className="text-white font-semibold text-sm mb-4 border-r-2 border-[#c59b27] pr-3 tracking-tight">
+              بيانات المتجر والتشغيل
             </h4>
             <ul className="space-y-3 text-xs text-gray-400">
-              <li className="flex items-center gap-3">
-                <Phone className="w-4 h-4 text-[#0071e3] shrink-0" />
-                <span dir="ltr">0100 123 4567</span>
+              <li className="flex items-start gap-3">
+                <MapPin className="w-4 h-4 text-[#c59b27] shrink-0 mt-0.5" />
+                <span>الإسكندرية، جمهورية مصر العربية (نطاق التوزيع الأساسي)</span>
               </li>
-              <li className="flex items-center gap-3">
-                <Mail className="w-4 h-4 text-[#0071e3] shrink-0" />
-                <span>contact@bazaar.eg</span>
+              <li className="text-[11px] text-gray-400 leading-relaxed border-t border-white/10 pt-2">
+                إدارة وإشراف: <span className="text-gray-200 font-semibold">شادي محمد توفيق</span>
               </li>
-              <li className="flex items-center gap-3">
-                <MapPin className="w-4 h-4 text-[#0071e3] shrink-0" />
-                <span>القاهرة - التجمع الخامس، جمهورية مصر العربية</span>
+              <li className="text-[11px] text-gray-400 leading-relaxed">
+                خدمة العملاء ومتابعة عروض الأسعار متاحة يومياً عبر حسابك بالمتجر.
               </li>
             </ul>
-
-            <div className="mt-6 pt-4 border-t border-white/10">
-              <Link
-                href="/auth/login"
-                className="text-[11px] text-gray-400 hover:text-white underline"
-              >
-                دخول الإدارة والمندوبين
-              </Link>
-            </div>
           </div>
 
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500">
-          <p>© 2026 متجر بازار (BAZAAR) — جميع الحقوق محفوظة.</p>
-          <p className="text-[11px]">
-            صُمم بنظام Apple Bento UI الفاخر | بيع موثوق حسب الطلب
+        <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-400">
+          <p>© 2026 دار العسل والزيتون (DAR EL ASAL & OLIVE) — جميع الحقوق محفوظة.</p>
+          <p className="text-[11px] text-gray-500">
+            المالك: شادي محمد توفيق | الإسكندرية، مصر
           </p>
         </div>
 

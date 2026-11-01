@@ -35,15 +35,15 @@ function ConfirmationContent() {
         </div>
 
         <div className="space-y-2">
-          <span className="text-xs font-bold text-gold-700 bg-gold-100 px-3 py-1 rounded-full">
-            تم تسجيل طلبك بنجاح
+          <span className="text-xs font-bold text-[#143823] bg-amber-100/80 px-3 py-1 rounded-full border border-amber-300">
+            طلب رغبة شراء قيد المراجعة والتدقيق
           </span>
           <h1 className="text-2xl sm:text-3xl font-black text-forest-950 font-cairo">
-            شكراً لثقتك في بازار!
+            شكراً لطلبك من دار العسل والزيتون
           </h1>
           {order && (
             <p className="text-sm font-bold text-forest-800">
-              رقم الطلب: <span className="font-mono text-base">{order.orderNumber}</span>
+              رقم الطلب المرجعي: <span className="font-mono text-base">{order.orderNumber}</span>
             </p>
           )}
         </div>
@@ -52,11 +52,14 @@ function ConfirmationContent() {
         <div className="bg-ivory-50 rounded-2xl p-4 border border-ivory-200 text-xs text-gray-700 text-right space-y-2.5">
           <div className="flex items-center gap-2 text-forest-900 font-bold">
             <Clock className="w-4 h-4 text-gold-600" />
-            <span>ما هي الخطوة التالية في نظام البيع حسب الطلب؟</span>
+            <span>ما هي الخطوة التالية لاعتماد طلبك؟</span>
           </div>
           <p className="leading-relaxed">
-            يقوم مدير المتجر الآن بالتواصل مع المورد المعتمد لتأكيد فحص الدفعة الطازجة، ثم يُسند الطلب لأحد مناديب التوصيل المعتمدين في منطقتك لتسليمه لك.
+            يقوم فريق إدارة المتجر الآن بمراجعة المنتجات المطلوبة وتأكيد طزاجة الدفعة، ثم يتم احتساب تسعيرة الشحن الدقيقة وفق عنوانك بالإسكندرية عبر شركة التوصيل المعتمدة وإرسال عرض السعر النهائي (Quotation) لاعتماده قبل خروج الشحنة.
           </p>
+          <div className="p-2.5 rounded-lg bg-amber-50 text-[11px] text-amber-900 border border-amber-200/60 font-medium">
+            💡 الدفع نقداً عند الاستلام فقط (COD) بعد المعاينة، ويمكنك إلغاء الطلب ذاتياً حتى 6 ساعات قبل موعد التوصيل المجدول.
+          </div>
         </div>
 
         {order && (

@@ -65,10 +65,10 @@ export default function DeliveryApplyPage() {
             <Truck className="w-7 h-7" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-forest-950 font-cairo">
-            انضم إلى فريق توصيل بازار (كابتن)
+            تقديم طلب انضمام كابتن توصيل
           </h1>
           <p className="text-xs sm:text-sm text-gray-500 max-w-md mx-auto leading-relaxed">
-            فرص عمل مرنة ومجزية لتوصيل المنتجات الغذائية الطبيعية لعملائنا في منطقتك
+            دار العسل والزيتون — التوصيل المعتمد لطلبات الإسكندرية والمناطق المجاورة
           </p>
         </div>
 
@@ -81,9 +81,9 @@ export default function DeliveryApplyPage() {
               تم إرسال طلب الانضمام بنجاح!
             </h2>
             <div className="bg-ivory-50 p-4 rounded-2xl border border-ivory-200 text-xs text-gray-600 max-w-md mx-auto leading-relaxed text-right">
-              <p className="font-bold text-forest-900 mb-1">حسابك قيد المراجعة حالياً من إدارة بازار.</p>
+              <p className="font-bold text-forest-900 mb-1">طلبك قيد المراجعة والتدقيق الإداري.</p>
               <p>
-                سيتم التواصل معك عبر الهاتف ({phone}) لمراجعة رخصة القيادة والاتفاق على مناطق التغطية وتفعيل حسابك لتسجيل الدخول والبدء في استلام المهام فوراً.
+                سيتم مراجعة بياناتك والتنسيق مع شركة التوصيل المعتمدة في نطاق الإسكندرية، ولن يتم تفعيل الحساب أو إتاحة استلام أي طلبات إلا بعد الاعتماد الإداري الرسمي والتحقق من الهوية.
               </p>
             </div>
             <Link

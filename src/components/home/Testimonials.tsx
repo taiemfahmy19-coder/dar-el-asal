@@ -12,7 +12,7 @@ export default function Testimonials() {
         
         <div className="text-center max-w-2xl mx-auto mb-12 space-y-2">
           <h2 className="text-2xl sm:text-3xl font-semibold text-[#1d1d1f] tracking-tight">
-            تجارب حقيقية لعملاء بازار
+            تجارب موثقة لعملاء دار العسل والزيتون
           </h2>
           <p className="text-xs sm:text-sm text-[#515154]">
             تقييمات موثقة من عملاء استلموا المنتجات وقاموا بتجربتها فعلياً

@@ -17,12 +17,19 @@ export default function CheckoutPage() {
   const [fullName, setFullName] = useState(user?.name || '');
   const [phone, setPhone] = useState(user?.phone || '');
   const [email, setEmail] = useState(user?.email || '');
-  const [governorate, setGovernorate] = useState('القاهرة');
+  const [governorate, setGovernorate] = useState('الإسكندرية');
   const [city, setCity] = useState('');
   const [streetAddress, setStreetAddress] = useState('');
   const [buildingDetails, setBuildingDetails] = useState('');
+  const [deliveryDate, setDeliveryDate] = useState(() => {
+    // Default to +2 days from today in YYYY-MM-DD
+    const d = new Date();
+    d.setDate(d.getDate() + 2);
+    return d.toISOString().split('T')[0];
+  });
+  const [deliveryTimeWindow, setDeliveryTimeWindow] = useState('12:00 م - 03:00 م (ظهراً)');
   const [notes, setNotes] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'COD' | 'CARD' | 'INSTAPAY'>('COD');
+  const paymentMethod = 'COD' as const;
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +41,7 @@ export default function CheckoutPage() {
           <p className="text-base font-semibold text-[#1d1d1f]">سلة المشتريات فارغة</p>
           <Link
             href="/products"
-            className="btn inline-block px-6 py-2.5 rounded-[980px] bg-[#0071e3] text-white font-medium text-xs hover:bg-[#0077ed]"
+            className="btn inline-block px-6 py-2.5 rounded-[980px] bg-[#143823] text-[#f5ebd2] font-medium text-xs hover:bg-[#1a4a2f]"
           >
             تصفح المنتجات
           </Link>
@@ -43,9 +50,7 @@ export default function CheckoutPage() {
     );
   }
 
-  const freeShippingThreshold = 1200;
-  const isFreeShipping = subtotal >= freeShippingThreshold;
-  const deliveryFee = isFreeShipping ? 0 : getDeliveryFee(governorate);
+  const deliveryFee = getDeliveryFee(governorate);
   const totalAmount = subtotal + deliveryFee;
 
   const handleSubmitOrder = async (e: React.FormEvent) => {
@@ -62,14 +67,16 @@ export default function CheckoutPage() {
     try {
       const orderPayload = {
         customerName: fullName.trim(),
-        customerEmail: email.trim() || 'customer@bazaar.local',
+        customerEmail: email.trim() || 'customer@darelasal.eg',
         customerPhone: phone.trim(),
         governorate,
         city: city.trim(),
         streetAddress: streetAddress.trim(),
         buildingDetails: buildingDetails.trim(),
         notes: notes.trim(),
-        paymentMethod,
+        deliveryDate,
+        deliveryTimeWindow,
+        paymentMethod: 'COD',
         items: items.map((i) => ({
           productId: i.product.id,
           quantity: i.quantity,
@@ -85,7 +92,7 @@ export default function CheckoutPage() {
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        setError(data.error || 'فشل إتمام الطلب، يرجى المحاولة مرة أخرى');
+        setError(data.error || 'فشل إرسال طلب رغبة الشراء، يرجى المحاولة مرة أخرى');
         setLoading(false);
         return;
       }
@@ -93,7 +100,7 @@ export default function CheckoutPage() {
       clearCart();
       router.push(`/orders/confirmation?orderId=${data.order.id}`);
     } catch {
-      setError('حدث خطأ في الاتصال بالخادم أثناء تأكيد الطلب');
+      setError('حدث خطأ في الاتصال بالخادم أثناء إرسال طلب رغبة الشراء');
       setLoading(false);
     }
   };
@@ -177,18 +184,17 @@ export default function CheckoutPage() {
 
                 <div>
                   <label className="block font-semibold text-[#1d1d1f] mb-1.5">
-                    المحافظة *
+                    المحافظة (النطاق الجغرافي) *
                   </label>
                   <select
                     value={governorate}
                     onChange={(e) => setGovernorate(e.target.value)}
-                    className="w-full px-3.5 py-3 rounded-[12px] bg-[#f5f5f7] border border-[#d2d2d7]/80 focus:outline-none focus:border-[#0071e3] font-medium text-[#1d1d1f]"
+                    className="w-full px-3.5 py-3 rounded-[12px] bg-[#f5f5f7] border border-[#d2d2d7]/80 focus:outline-none focus:border-[#c59b27] font-medium text-[#1d1d1f]"
                   >
-                    {EGYPTIAN_GOVERNORATES.map((gov) => (
-                      <option key={gov.name} value={gov.name}>
-                        {gov.name} ({formatPrice(gov.fee)} توصيل)
-                      </option>
-                    ))}
+                    <option value="الإسكندرية">الإسكندرية (النطاق الأساسي المعتمد للتدشين)</option>
+                    <option value="البحيرة">البحيرة (المناطق المجاورة)</option>
+                    <option value="القاهرة">القاهرة (توسّع مجدول)</option>
+                    <option value="الجيزة">الجيزة (توسّع مجدول)</option>
                   </select>
                 </div>
 
@@ -201,8 +207,8 @@ export default function CheckoutPage() {
                     required
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
-                    placeholder="مثال: المعادي الجديدة، أو التجمع الخامس، أو سموحة"
-                    className="w-full px-3.5 py-3 rounded-[12px] bg-[#f5f5f7] border border-[#d2d2d7]/80 focus:outline-none focus:border-[#0071e3] focus:ring-4 focus:ring-blue-500/15 text-[#1d1d1f]"
+                    placeholder="مثال: سموحة، رشدي، لوران، ميامي، كفر عبده..."
+                    className="w-full px-3.5 py-3 rounded-[12px] bg-[#f5f5f7] border border-[#d2d2d7]/80 focus:outline-none focus:border-[#c59b27] focus:ring-4 focus:ring-amber-500/15 text-[#1d1d1f]"
                   />
                 </div>
 
@@ -216,7 +222,7 @@ export default function CheckoutPage() {
                     value={streetAddress}
                     onChange={(e) => setStreetAddress(e.target.value)}
                     placeholder="اسم الشارع ورقم العقار أو علامة مميزة قريبة"
-                    className="w-full px-3.5 py-3 rounded-[12px] bg-[#f5f5f7] border border-[#d2d2d7]/80 focus:outline-none focus:border-[#0071e3] focus:ring-4 focus:ring-blue-500/15 text-[#1d1d1f]"
+                    className="w-full px-3.5 py-3 rounded-[12px] bg-[#f5f5f7] border border-[#d2d2d7]/80 focus:outline-none focus:border-[#c59b27] focus:ring-4 focus:ring-amber-500/15 text-[#1d1d1f]"
                   />
                 </div>
 
@@ -229,8 +235,44 @@ export default function CheckoutPage() {
                     value={buildingDetails}
                     onChange={(e) => setBuildingDetails(e.target.value)}
                     placeholder="مثال: عمارة 12، الدور الثاني، شقة 5"
-                    className="w-full px-3.5 py-3 rounded-[12px] bg-[#f5f5f7] border border-[#d2d2d7]/80 focus:outline-none focus:border-[#0071e3] focus:ring-4 focus:ring-blue-500/15 text-[#1d1d1f]"
+                    className="w-full px-3.5 py-3 rounded-[12px] bg-[#f5f5f7] border border-[#d2d2d7]/80 focus:outline-none focus:border-[#c59b27] focus:ring-4 focus:ring-amber-500/15 text-[#1d1d1f]"
                   />
+                </div>
+
+                {/* Delivery Scheduling (Directive Sec 10 & 11) */}
+                <div className="sm:col-span-1">
+                  <label className="block font-semibold text-[#1d1d1f] mb-1.5">
+                    تاريخ الاستلام المفضل *
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={deliveryDate}
+                    onChange={(e) => setDeliveryDate(e.target.value)}
+                    className="w-full px-3.5 py-3 rounded-[12px] bg-[#f5f5f7] border border-[#d2d2d7]/80 focus:outline-none focus:border-[#c59b27] font-medium text-[#1d1d1f]"
+                  />
+                </div>
+
+                <div className="sm:col-span-1">
+                  <label className="block font-semibold text-[#1d1d1f] mb-1.5">
+                    الفترة الزمنية المفضلة للتوصيل *
+                  </label>
+                  <select
+                    value={deliveryTimeWindow}
+                    onChange={(e) => setDeliveryTimeWindow(e.target.value)}
+                    className="w-full px-3.5 py-3 rounded-[12px] bg-[#f5f5f7] border border-[#d2d2d7]/80 focus:outline-none focus:border-[#c59b27] font-medium text-[#1d1d1f]"
+                  >
+                    <option value="12:00 م - 03:00 م (ظهراً)">12:00 م - 03:00 م (ظهراً)</option>
+                    <option value="03:00 م - 06:00 م (عصراً)">03:00 م - 06:00 م (عصراً)</option>
+                    <option value="06:00 م - 09:00 م (مساءً)">06:00 م - 09:00 م (مساءً)</option>
+                    <option value="09:00 ص - 12:00 م (صباحاً)">09:00 ص - 12:00 م (صباحاً)</option>
+                  </select>
+                </div>
+
+                <div className="sm:col-span-2">
+                  <div className="p-3 bg-amber-50 rounded-[12px] border border-amber-200/80 text-[11px] text-[#8a681c] leading-relaxed">
+                    💡 <strong>سياسة الإلغاء (6 ساعات):</strong> يحق لك إلغاء الطلب ذاتياً حتى موعد أقصاه 6 ساعات قبل بدء فترة التوصيل المختارة. بعد ذلك، يتطلب الإلغاء التنسيق المباشر مع إدارة المتجر.
+                  </div>
                 </div>
 
                 <div className="sm:col-span-2">
@@ -242,104 +284,32 @@ export default function CheckoutPage() {
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="ملاحظات حول وقت الاستلام المفضل أو تعليمات خاصة للمندوب..."
-                    className="w-full px-3.5 py-3 rounded-[12px] bg-[#f5f5f7] border border-[#d2d2d7]/80 focus:outline-none focus:border-[#0071e3] focus:ring-4 focus:ring-blue-500/15 text-[#1d1d1f]"
+                    className="w-full px-3.5 py-3 rounded-[12px] bg-[#f5f5f7] border border-[#d2d2d7]/80 focus:outline-none focus:border-[#c59b27] focus:ring-4 focus:ring-amber-500/15 text-[#1d1d1f]"
                   />
                 </div>
               </div>
             </div>
 
-            {/* Payment Method Selection Bento */}
+            {/* Payment Method Selection Bento - STRICTLY COD (Directive Sec 8) */}
             <div className="card p-6 sm:p-8 border border-[#d2d2d7]/50 space-y-4 !rounded-[18px]">
               <h2 className="text-base font-semibold text-[#1d1d1f] flex items-center gap-2 border-b border-[#d2d2d7]/40 pb-3 tracking-tight">
-                <CreditCard className="w-5 h-5 text-[#0071e3]" />
-                <span>2. طريقة الدفع</span>
+                <CreditCard className="w-5 h-5 text-[#c59b27]" />
+                <span>2. طريقة الدفع المعتمدة</span>
               </h2>
 
-              <div className="space-y-3">
-                
-                {/* COD Option */}
-                <label
-                  className={`flex items-start gap-3 p-4 rounded-[14px] border cursor-pointer transition-all ${
-                    paymentMethod === 'COD'
-                      ? 'bg-blue-50/60 border-[#0071e3] ring-1 ring-[#0071e3]'
-                      : 'bg-[#f5f5f7] border-[#d2d2d7]/60 hover:bg-gray-200/50'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="payment"
-                    value="COD"
-                    checked={paymentMethod === 'COD'}
-                    onChange={() => setPaymentMethod('COD')}
-                    className="mt-1 accent-[#0071e3]"
-                  />
-                  <div className="flex-1 text-xs">
-                    <div className="flex items-center gap-2 font-semibold text-[#1d1d1f] text-sm">
-                      <Banknote className="w-4 h-4 text-emerald-600" />
-                      <span>الدفع نقداً عند الاستلام (COD)</span>
-                      <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-medium">
-                        الأكثر اختياراً
-                      </span>
-                    </div>
-                    <p className="text-[#515154] mt-1 leading-relaxed">
-                      ادفع للكابتن بعد استلام الطرد ومعاينة المنتجات والتأكد من سلامتها.
-                    </p>
+              <div className="p-4 rounded-[14px] border border-[#c59b27]/60 bg-amber-50/50 flex items-start gap-3">
+                <Banknote className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" />
+                <div className="text-xs space-y-1">
+                  <div className="flex items-center gap-2 font-bold text-[#143823] text-sm">
+                    <span>الدفع نقداً عند الاستلام (Cash on Delivery)</span>
+                    <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-medium">
+                      المعتمد رسمياً للتدشين
+                    </span>
                   </div>
-                </label>
-
-                {/* InstaPay Option */}
-                <label
-                  className={`flex items-start gap-3 p-4 rounded-[14px] border cursor-pointer transition-all ${
-                    paymentMethod === 'INSTAPAY'
-                      ? 'bg-blue-50/60 border-[#0071e3] ring-1 ring-[#0071e3]'
-                      : 'bg-[#f5f5f7] border-[#d2d2d7]/60 hover:bg-gray-200/50'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="payment"
-                    value="INSTAPAY"
-                    checked={paymentMethod === 'INSTAPAY'}
-                    onChange={() => setPaymentMethod('INSTAPAY')}
-                    className="mt-1 accent-[#c59b27]"
-                  />
-                  <div className="flex-1 text-xs">
-                    <div className="flex items-center gap-2 font-semibold text-[#1d1d1f] text-sm">
-                      <span>التحويل اللحظي عبر InstaPay</span>
-                    </div>
-                    <p className="text-[#515154] mt-1 leading-relaxed">
-                      يمكنك تحويل المبلغ عبر عنوان الدفع اللحظي (IPA) الخاص بالمتجر بعد تأكيد الطلب.
-                    </p>
-                  </div>
-                </label>
-
-                {/* Card Option */}
-                <label
-                  className={`flex items-start gap-3 p-4 rounded-[14px] border cursor-pointer transition-all ${
-                    paymentMethod === 'CARD'
-                      ? 'bg-[#f5ebd2] border-[#c59b27] ring-1 ring-[#c59b27]'
-                      : 'bg-[#f5f5f7] border-[#d2d2d7]/60 hover:bg-gray-200/50'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="payment"
-                    value="CARD"
-                    checked={paymentMethod === 'CARD'}
-                    onChange={() => setPaymentMethod('CARD')}
-                    className="mt-1 accent-[#c59b27]"
-                  />
-                  <div className="flex-1 text-xs">
-                    <div className="flex items-center gap-2 font-semibold text-[#1d1d1f] text-sm">
-                      <CreditCard className="w-4 h-4 text-[#c59b27]" />
-                      <span>بطاقة بنكية معتمدة (فيزا / ماستركارد / ميزة)</span>
-                    </div>
-                    <p className="text-[#515154] mt-1 leading-relaxed">
-                      بوابة دفع آمنة ومشفرة ومحمية ببروتوكول 3D Secure.
-                    </p>
-                  </div>
-                </label>
-
+                  <p className="text-[#515154] leading-relaxed text-[11px]">
+                    الدفع يتم نقداً للمندوب بعد استلام الطرد ومعاينة المنتجات والتأكد التام من سلامتها ومطابقتها.
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -385,18 +355,14 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="flex items-center justify-between text-[#515154]">
-                  <span>رسوم التوصيل ({governorate}):</span>
+                  <span>رسوم التوصيل المقدرة ({governorate}):</span>
                   <span className="font-bold text-[#1d1d1f]">
-                    {isFreeShipping ? (
-                      <span className="text-emerald-700 font-semibold">شحن مجاني (توفير {formatPrice(getDeliveryFee(governorate))})</span>
-                    ) : (
-                      formatPrice(deliveryFee)
-                    )}
+                    {formatPrice(deliveryFee)}
                   </span>
                 </div>
 
                 <div className="pt-3 border-t border-[#d2d2d7]/40 flex items-center justify-between text-[#1d1d1f]">
-                  <span className="font-semibold text-sm">المبلغ الإجمالي المطلوب:</span>
+                  <span className="font-semibold text-sm">المجموع المقدر:</span>
                   <span className="font-bold text-2xl text-[#1d1d1f]">
                     {formatPrice(totalAmount)}
                   </span>
@@ -414,17 +380,19 @@ export default function CheckoutPage() {
                 ) : (
                   <>
                     <Lock className="w-4 h-4 text-white/90" />
-                    <span>تأكيد وإتمام الطلب ({formatPrice(totalAmount)})</span>
+                    <span>إرسال طلب رغبة الشراء للمراجعة</span>
                   </>
                 )}
               </button>
 
-              <div className="text-[11px] text-[#515154] text-center leading-relaxed space-y-1">
-                <p className="flex items-center justify-center gap-1.5 text-emerald-700 font-semibold">
-                  <ShieldCheck className="w-4 h-4" />
-                  <span>تأكيد التوفر المباشر من المورد</span>
+              <div className="text-[11px] text-[#515154] text-center leading-relaxed space-y-1.5 pt-1">
+                <p className="flex items-center justify-center gap-1.5 text-[#143823] font-semibold">
+                  <ShieldCheck className="w-4 h-4 text-[#c59b27]" />
+                  <span>طلب رغبة شراء قيد المراجعة</span>
                 </p>
-                <p>لن يتم خصم أو تحصيل أي مبالغ قبل تأكيد توفر الدفعة الطازجة.</p>
+                <p>
+                  يراجع فريق الإدارة توفر الدفعة الطازجة وتأكيد تسعيرة الشحن مع شركة التوصيل بالإسكندرية وإرسال عرض السعر النهائي لاعتماده.
+                </p>
               </div>
 
             </div>

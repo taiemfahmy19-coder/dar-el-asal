@@ -44,14 +44,19 @@ export interface DatabaseState {
 }
 
 const DATA_DIR = path.join(process.cwd(), 'data');
-const DB_FILE = path.join(DATA_DIR, 'bazaar-store.json');
+const DB_FILE = path.join(DATA_DIR, 'darelasal-store.json');
+const FALLBACK_TMP_FILE = path.join('/tmp', 'darelasal-store.json');
 
 // In-memory cache
 let inMemoryDb: DatabaseState | null = null;
 
 function ensureDataDirectory() {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+  } catch {
+    // Read-only filesystem in serverless environments (like Vercel)
   }
 }
 
@@ -79,7 +84,7 @@ function getInitialDatabaseState(): DatabaseState {
         id: 'notif-2',
         userId: 'user-courier-1',
         title: 'مهمة توصيل جديدة مسندة',
-        message: 'تم إسناد الطلب رقم BZR-2026-1001 في منطقة المعادي إليك.',
+        message: 'تم إسناد الطلب رقم DO-2026-1001 في منطقة المنتزه بالإسكندرية إليك.',
         link: '/delivery/dashboard',
         isRead: false,
         createdAt: '2026-10-25T11:05:00.000Z',
@@ -88,7 +93,7 @@ function getInitialDatabaseState(): DatabaseState {
         id: 'notif-3',
         userId: 'user-customer-1',
         title: 'شحنتك في الطريق!',
-        message: 'خرج المندوب أحمد النجار لتوصيل طلبك رقم BZR-2026-1001.',
+        message: 'خرج المندوب لتوصيل طلبك رقم DO-2026-1001.',
         link: '/orders/ord-1001',
         isRead: false,
         createdAt: '2026-10-25T11:32:00.000Z',
@@ -98,7 +103,7 @@ function getInitialDatabaseState(): DatabaseState {
       {
         id: 'audit-1',
         userId: 'user-admin-1',
-        userName: 'م. طارق العريان',
+        userName: 'شادي محمد توفيق',
         userRole: 'admin',
         action: 'UPDATE_ORDER_STATUS',
         entityType: 'ORDER',
@@ -109,7 +114,7 @@ function getInitialDatabaseState(): DatabaseState {
       {
         id: 'audit-2',
         userId: 'user-admin-1',
-        userName: 'م. طارق العريان',
+        userName: 'شادي محمد توفيق',
         userRole: 'admin',
         action: 'ASSIGN_COURIER',
         entityType: 'ORDER',
@@ -151,15 +156,25 @@ export function getDb(): DatabaseState {
 
   ensureDataDirectory();
 
+  // 1. Try reading from primary file
   if (fs.existsSync(DB_FILE)) {
     try {
       const fileData = fs.readFileSync(DB_FILE, 'utf-8');
       inMemoryDb = JSON.parse(fileData);
       return inMemoryDb!;
     } catch (err) {
-      console.error('Failed reading bazaar-store.json, resetting to seed:', err);
+      console.error('Failed reading primary store, checking fallback:', err);
     }
   }
+
+  // 2. Try reading from serverless /tmp fallback
+  try {
+    if (fs.existsSync(FALLBACK_TMP_FILE)) {
+      const tmpData = fs.readFileSync(FALLBACK_TMP_FILE, 'utf-8');
+      inMemoryDb = JSON.parse(tmpData);
+      return inMemoryDb!;
+    }
+  } catch {}
 
   const initialState = getInitialDatabaseState();
   inMemoryDb = initialState;
@@ -171,17 +186,19 @@ export function saveDb(state: DatabaseState): void {
   ensureDataDirectory();
   inMemoryDb = state;
 
-  const tempFile = `${DB_FILE}.tmp.${Date.now()}`;
+  // Try saving to primary file
   try {
+    const tempFile = `${DB_FILE}.tmp.${Date.now()}`;
     fs.writeFileSync(tempFile, JSON.stringify(state, null, 2), 'utf-8');
     fs.renameSync(tempFile, DB_FILE);
+    return;
   } catch (err) {
-    console.error('Error saving database state atomically:', err);
+    // If read-only filesystem (e.g. Vercel serverless), write to /tmp
     try {
-      if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile);
-    } catch {}
-    // Fallback direct write
-    fs.writeFileSync(DB_FILE, JSON.stringify(state, null, 2), 'utf-8');
+      fs.writeFileSync(FALLBACK_TMP_FILE, JSON.stringify(state, null, 2), 'utf-8');
+    } catch (tmpErr) {
+      console.warn('Persistence warning: memory-only mode active in current execution context');
+    }
   }
 }
 

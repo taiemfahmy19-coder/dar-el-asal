@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { getOrderById, saveOrder, addAuditLog, getCourierProfileByUserId, saveCourierProfile, addNotification } from '@/lib/db';
-import { executeOrderStatusTransition } from '@/lib/order-engine';
+import { executeOrderStatusTransition, prepareOrderQuotation, customerAcceptQuotation, customerRejectQuotation } from '@/lib/order-engine';
 import { OrderStatus } from '@/lib/types';
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
@@ -17,7 +17,48 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }
 
     const body = await req.json();
-    const { action, newStatus, notes, courierId, failureReason, cancelReason } = body;
+    const { action, newStatus, notes, courierId, failureReason, cancelReason, deliveryFee } = body;
+
+    // Action 0: Quotation Workflow (Directive Sec 7 & 12)
+    if (action === 'PREPARE_QUOTATION') {
+      if (currentUser.role !== 'admin') {
+        return NextResponse.json({ error: 'إصدار عروض الأسعار متاح للمدير فقط' }, { status: 403 });
+      }
+      const fee = Number(deliveryFee ?? order.deliveryFee);
+      const res = prepareOrderQuotation({
+        orderId: order.id,
+        deliveryFee: fee,
+        adminUserId: currentUser.id,
+        adminUserName: currentUser.name,
+        notes,
+      });
+      return NextResponse.json(res, { status: res.success ? 200 : 400 });
+    }
+
+    if (action === 'ACCEPT_QUOTATION') {
+      if (order.userId && order.userId !== currentUser.id && currentUser.role !== 'admin') {
+        return NextResponse.json({ error: 'غير مصرح لك باعتماد هذا العرض' }, { status: 403 });
+      }
+      const res = customerAcceptQuotation({
+        orderId: order.id,
+        userId: currentUser.id,
+        userName: currentUser.name,
+      });
+      return NextResponse.json(res, { status: res.success ? 200 : 400 });
+    }
+
+    if (action === 'REJECT_QUOTATION') {
+      if (order.userId && order.userId !== currentUser.id && currentUser.role !== 'admin') {
+        return NextResponse.json({ error: 'غير مصرح لك برفض هذا العرض' }, { status: 403 });
+      }
+      const res = customerRejectQuotation({
+        orderId: order.id,
+        userId: currentUser.id,
+        userName: currentUser.name,
+        reason: cancelReason,
+      });
+      return NextResponse.json(res, { status: res.success ? 200 : 400 });
+    }
 
     // Action 1: Manual courier assignment (Admin only)
     if (action === 'ASSIGN_COURIER') {

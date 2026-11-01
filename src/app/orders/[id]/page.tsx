@@ -15,10 +15,16 @@ import {
   Ban,
   ArrowRight,
   ShieldCheck,
+  Printer,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  FileCheck2,
 } from 'lucide-react';
 import { Order } from '@/lib/types';
 import { formatPrice, formatDate, ORDER_STATUS_MAP } from '@/lib/utils';
 import OrderTimeline from '@/components/orders/OrderTimeline';
+import OrderPrintDocument from '@/components/orders/OrderPrintDocument';
 import { useAuth } from '@/components/context/AuthContext';
 
 export default function OrderTrackingPage() {
@@ -32,6 +38,8 @@ export default function OrderTrackingPage() {
   const [cancelling, setCancelling] = useState(false);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
+  const [printModalOpen, setPrintModalOpen] = useState(false);
+  const [quotationActionLoading, setQuotationActionLoading] = useState(false);
 
   const fetchOrder = () => {
     if (!id) return;
@@ -56,7 +64,7 @@ export default function OrderTrackingPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           newStatus: 'CANCELLED',
-          cancelReason: cancelReason || 'طلب العميل إلغاء الطلب قبل التأكيد',
+          cancelReason: cancelReason || 'طلب العميل إلغاء الطلب قبل موعد التوصيل المجدول',
         }),
       });
       const data = await res.json();
@@ -64,12 +72,57 @@ export default function OrderTrackingPage() {
         setCancelModalOpen(false);
         fetchOrder();
       } else {
-        alert(data.error || 'تعذر إلغاء الطلب');
+        alert(data.error || 'تعذر إلغاء الطلب: ربما تبقت أقل من 6 ساعات على موعد التوصيل المجدول');
       }
     } catch {
-      alert('حدث خطأ في الاتصال');
+      alert('حدث خطأ في الاتصال بالخادم');
     } finally {
       setCancelling(false);
+    }
+  };
+
+  const handleAcceptQuotation = async () => {
+    if (!order) return;
+    setQuotationActionLoading(true);
+    try {
+      const res = await fetch(`/api/orders/${order.id}/status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'ACCEPT_QUOTATION' }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        fetchOrder();
+      } else {
+        alert(data.error || 'فشل اعتماد عرض السعر');
+      }
+    } catch {
+      alert('حدث خطأ في الاتصال بالخادم');
+    } finally {
+      setQuotationActionLoading(false);
+    }
+  };
+
+  const handleRejectQuotation = async () => {
+    if (!order) return;
+    if (!confirm('هل أنت متأكد من رغبتك في رفض عرض السعر وإلغاء الطلب؟')) return;
+    setQuotationActionLoading(true);
+    try {
+      const res = await fetch(`/api/orders/${order.id}/status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'REJECT_QUOTATION', cancelReason: 'رفض العميل عرض السعر النهائي' }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        fetchOrder();
+      } else {
+        alert(data.error || 'فشل رفض عرض السعر');
+      }
+    } catch {
+      alert('حدث خطأ في الاتصال بالخادم');
+    } finally {
+      setQuotationActionLoading(false);
     }
   };
 
@@ -97,7 +150,10 @@ export default function OrderTrackingPage() {
   }
 
   const statusConfig = ORDER_STATUS_MAP[order.orderStatus] || ORDER_STATUS_MAP.PENDING;
-  const canCancel = order.orderStatus === 'PENDING' || order.orderStatus === 'AWAITING_SUPPLIER';
+  const now = new Date().getTime();
+  const deadlineMs = order.cancellationDeadline ? new Date(order.cancellationDeadline).getTime() : 0;
+  const isWithinDeadline = deadlineMs > 0 ? now < deadlineMs : true;
+  const canCancel = (order.orderStatus === 'PENDING' || order.orderStatus === 'AWAITING_SUPPLIER') && isWithinDeadline;
 
   return (
     <div className="bg-ivory-50/40 min-h-screen py-10 text-right">
@@ -117,12 +173,20 @@ export default function OrderTrackingPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <span
               className={`px-3 py-1.5 rounded-full text-xs font-bold border ${statusConfig.bg} ${statusConfig.color} ${statusConfig.border}`}
             >
               {statusConfig.label}
             </span>
+
+            <button
+              onClick={() => setPrintModalOpen(true)}
+              className="px-3.5 py-1.5 rounded-full text-xs font-bold text-forest-900 bg-gold-50 hover:bg-gold-100 transition-colors border border-gold-300 flex items-center gap-1.5 shadow-sm"
+            >
+              <Printer className="w-3.5 h-3.5 text-gold-700" />
+              <span>عرض المستند والتحقق QR</span>
+            </button>
 
             {canCancel && (
               <button
@@ -133,6 +197,81 @@ export default function OrderTrackingPage() {
               </button>
             )}
           </div>
+        </div>
+
+        {/* Quotation Review Banner (If Admin sent quotation) */}
+        {order.quotationStatus === 'SENT' && (
+          <div className="bg-gradient-to-r from-amber-50 to-gold-50 rounded-3xl p-6 sm:p-8 border border-gold-200 shadow-subtle space-y-4">
+            <div className="flex items-center gap-3">
+              <FileCheck2 className="w-6 h-6 text-gold-600 shrink-0" />
+              <div>
+                <h3 className="font-bold text-base text-forest-950">
+                  عرض سعر نهائي متاح بانتظار موافقتك
+                </h3>
+                <p className="text-xs text-forest-800/80">
+                  قامت الإدارة بمراجعة طلبك واحتساب مصاريف التوصيل المعتمدة ({formatPrice(order.deliveryFee)}) ليكون الإجمالي النهائي {formatPrice(order.totalAmount)}.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 pt-2">
+              <button
+                onClick={handleAcceptQuotation}
+                disabled={quotationActionLoading}
+                className="px-6 py-2.5 rounded-xl bg-forest-900 text-gold-300 hover:bg-forest-800 font-bold text-xs shadow-md transition-all flex items-center gap-2"
+              >
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <span>اعتماد عرض السعر وتأكيد الطلب</span>
+              </button>
+
+              <button
+                onClick={handleRejectQuotation}
+                disabled={quotationActionLoading}
+                className="px-5 py-2.5 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 font-bold text-xs border border-rose-200 transition-all flex items-center gap-2"
+              >
+                <XCircle className="w-4 h-4 text-rose-500" />
+                <span>رفض العرض وإلغاء الطلب</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Quotation Pending Review Notice */}
+        {(order.quotationStatus === 'PENDING_REVIEW' || order.quotationStatus === 'NOT_ISSUED') && order.orderStatus === 'PENDING' && (
+          <div className="bg-blue-50/70 rounded-2xl p-4 border border-blue-200 text-xs text-blue-900 flex items-center gap-3">
+            <Clock className="w-5 h-5 text-blue-600 shrink-0" />
+            <p>
+              طلبك قيد المراجعة الإدارية لمطابقة التوفر واحتساب تعرفة شركة الشحن بدقة لمدينة الإسكندرية. سيظهر لك عرض السعر النهائي هنا فور اعتماده.
+            </p>
+          </div>
+        )}
+
+        {/* 6-Hour Cancellation Policy Badge */}
+        <div className="bg-white rounded-2xl p-4 border border-ivory-200 text-xs flex items-center justify-between gap-3 shadow-subtle">
+          <div className="flex items-center gap-2 text-gray-600">
+            <ShieldCheck className="w-4 h-4 text-forest-800 shrink-0" />
+            <div>
+              <span className="font-bold text-forest-950">سياسة الإلغاء (6 ساعات): </span>
+              {order.deliveryDate ? (
+                <span>
+                  موعد التوصيل المجدول: <strong className="text-forest-900">{order.deliveryDate} ({order.deliveryTimeWindow || 'الفترة الصباحية'})</strong>.
+                  {order.cancellationDeadline && (
+                    <span className="mr-1 text-gray-500">
+                      (آخر موعد للإلغاء الذاتي: {formatDate(order.cancellationDeadline)})
+                    </span>
+                  )}
+                </span>
+              ) : (
+                <span>يحق للعميل الإلغاء الذاتي قبل 6 ساعات على الأقل من بدء نافذة التوصيل المجدولة.</span>
+              )}
+            </div>
+          </div>
+
+          {!isWithinDeadline && order.orderStatus !== 'CANCELLED' && order.orderStatus !== 'DELIVERED' && (
+            <span className="text-[11px] font-bold text-amber-700 bg-amber-50 px-3 py-1 rounded-full border border-amber-200 shrink-0">
+              انتهت مهلة الإلغاء الذاتي
+            </span>
+          )}
         </div>
 
         {/* Order Lifecycle Timeline Tracker */}
@@ -314,6 +453,15 @@ export default function OrderTrackingPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Print Document & QR Modal */}
+      {printModalOpen && (
+        <OrderPrintDocument
+          order={order}
+          type={order.quotationStatus === 'SENT' ? 'quotation' : 'confirmation'}
+          onClose={() => setPrintModalOpen(false)}
+        />
       )}
 
     </div>

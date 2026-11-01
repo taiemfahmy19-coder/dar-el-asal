@@ -5,10 +5,10 @@ import { User, UserRole } from './types';
 import { getUserById } from './db';
 
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'bazaar-premium-arabic-ecommerce-secret-key-2026-secure'
+  process.env.JWT_SECRET || 'dar-el-asal-olive-secure-secret-key-2026-production'
 );
 
-const COOKIE_NAME = 'bazaar_session';
+const COOKIE_NAME = 'darelasal_session';
 
 export interface SessionPayload {
   userId: string;

@@ -39,12 +39,12 @@ export default function AdminSidebar() {
       <div className="space-y-6">
         {/* Brand */}
         <div className="flex items-center gap-3 pb-6 border-b border-forest-900">
-          <div className="w-10 h-10 rounded-xl bg-forest-800 text-gold-400 flex items-center justify-center font-bold text-lg border border-forest-700">
-            بـ
+          <div className="w-10 h-10 rounded-xl bg-[#143823] text-[#c59b27] flex items-center justify-center font-bold text-lg border border-[#c59b27]/40">
+            🍯
           </div>
           <div>
-            <span className="font-extrabold text-lg text-white font-cairo">لوحة إدارة بازار</span>
-            <span className="block text-[10px] text-gold-400 font-semibold">BAZAAR CONTROL PANEL</span>
+            <span className="font-extrabold text-base text-white font-cairo">دار العسل والزيتون</span>
+            <span className="block text-[9px] text-[#c59b27] font-semibold tracking-wider">لوحة الإدارة والمتابعة</span>
           </div>
         </div>
 

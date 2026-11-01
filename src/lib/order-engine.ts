@@ -30,28 +30,38 @@ export const PERMITTED_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
 export function canUserPerformTransition(
   userRole: UserRole,
   fromStatus: OrderStatus,
-  toStatus: OrderStatus
-): boolean {
+  toStatus: OrderStatus,
+  order?: Order
+): { allowed: boolean; reason?: string } {
   if (userRole === 'admin') {
-    return true; // Admin can manage transitions
+    return { allowed: true };
   }
 
   if (userRole === 'delivery') {
-    // Delivery agent can only perform specific lifecycle transitions on assigned orders:
-    // ASSIGNED -> OUT_FOR_DELIVERY
-    // OUT_FOR_DELIVERY -> DELIVERED or DELIVERY_FAILED
-    if (fromStatus === 'ASSIGNED' && toStatus === 'OUT_FOR_DELIVERY') return true;
-    if (fromStatus === 'OUT_FOR_DELIVERY' && (toStatus === 'DELIVERED' || toStatus === 'DELIVERY_FAILED')) return true;
-    return false;
+    if (fromStatus === 'ASSIGNED' && toStatus === 'OUT_FOR_DELIVERY') return { allowed: true };
+    if (fromStatus === 'OUT_FOR_DELIVERY' && (toStatus === 'DELIVERED' || toStatus === 'DELIVERY_FAILED')) return { allowed: true };
+    return { allowed: false, reason: 'صلاحيات المندوب تقتصر على بدء التوصيل أو تأكيد الاستلام/التعذر للطلبات المسندة إليه فقط' };
   }
 
   if (userRole === 'customer') {
-    // Customer can only cancel their order while still PENDING
-    if (fromStatus === 'PENDING' && toStatus === 'CANCELLED') return true;
-    return false;
+    if ((fromStatus === 'PENDING' || fromStatus === 'AWAITING_SUPPLIER') && toStatus === 'CANCELLED') {
+      // Strictly enforce 6-hour cancellation policy (Directive Sec 11)
+      if (order?.cancellationDeadline) {
+        const deadlineMs = new Date(order.cancellationDeadline).getTime();
+        const nowMs = Date.now();
+        if (nowMs > deadlineMs) {
+          return {
+            allowed: false,
+            reason: 'لا يمكن إلغاء الطلب ذاتياً: تبقت أقل من 6 ساعات على موعد التوصيل المجدول وفق سياسة المتجر.',
+          };
+        }
+      }
+      return { allowed: true };
+    }
+    return { allowed: false, reason: 'لا يمكن للعميل إلغاء الطلب بعد دخوله مرحلة التجهيز أو خروجه للتوصيل' };
   }
 
-  return false;
+  return { allowed: false, reason: 'صلاحيات غير كافية لتنفيذ هذا الإجراء' };
 }
 
 export function isValidTransition(fromStatus: OrderStatus, toStatus: OrderStatus): boolean {
@@ -69,8 +79,37 @@ export interface CreateOrderInput {
   streetAddress: string;
   buildingDetails?: string;
   notes?: string;
+  deliveryDate?: string;
+  deliveryTimeWindow?: string;
   items: { productId: string; quantity: number }[];
-  paymentMethod: 'COD' | 'CARD' | 'INSTAPAY';
+  paymentMethod: 'COD';
+}
+
+function calculateCancellationDeadline(deliveryDate?: string, deliveryTimeWindow?: string): string {
+  // If delivery date is specified (e.g. YYYY-MM-DD)
+  if (deliveryDate) {
+    const d = new Date(deliveryDate);
+    // Parse start hour from window or default to 12:00 PM (noon)
+    let startHour = 12;
+    if (deliveryTimeWindow) {
+      if (deliveryTimeWindow.includes('09:00') || deliveryTimeWindow.includes('9:00') || deliveryTimeWindow.includes('صباحاً')) {
+        startHour = 9;
+      } else if (deliveryTimeWindow.includes('12:00') || deliveryTimeWindow.includes('ظهراً')) {
+        startHour = 12;
+      } else if (deliveryTimeWindow.includes('03:00') || deliveryTimeWindow.includes('3:00') || deliveryTimeWindow.includes('عصراً')) {
+        startHour = 15;
+      } else if (deliveryTimeWindow.includes('06:00') || deliveryTimeWindow.includes('6:00') || deliveryTimeWindow.includes('مساءً')) {
+        startHour = 18;
+      }
+    }
+    d.setHours(startHour, 0, 0, 0);
+    // 6-hour policy: deadline is exactly 6 hours before scheduled start
+    const deadlineMs = d.getTime() - (6 * 60 * 60 * 1000);
+    return new Date(deadlineMs).toISOString();
+  }
+
+  // Fallback: 24 hours from creation time (if scheduled 30h out)
+  return new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 }
 
 export function createOrderServerSide(input: CreateOrderInput): {
@@ -131,10 +170,12 @@ export function createOrderServerSide(input: CreateOrderInput): {
 
   const now = new Date().toISOString();
   const nextOrderNumberSeq = db.orders.length + 1001;
-  const orderNumber = `BZR-2026-${nextOrderNumberSeq}`;
+  const orderNumber = `DO-2026-${nextOrderNumberSeq}`;
 
-  // Initial order status based on products: if any item needs confirmation, set to AWAITING_SUPPLIER, otherwise PENDING
+  // Initial order status: starts as PENDING / AWAITING_SUPPLIER
   const initialStatus: OrderStatus = hasNeedsConfirmationItem ? 'AWAITING_SUPPLIER' : 'PENDING';
+
+  const cancellationDeadline = calculateCancellationDeadline(input.deliveryDate, input.deliveryTimeWindow);
 
   const order: Order = {
     id: orderId,
@@ -148,12 +189,16 @@ export function createOrderServerSide(input: CreateOrderInput): {
     streetAddress: input.streetAddress.trim(),
     buildingDetails: input.buildingDetails?.trim(),
     notes: input.notes?.trim(),
+    deliveryDate: input.deliveryDate,
+    deliveryTimeWindow: input.deliveryTimeWindow,
+    cancellationDeadline,
+    quotationStatus: 'NOT_ISSUED',
     subtotal,
     deliveryFee,
     totalAmount,
     totalCost,
     estimatedProfit,
-    paymentMethod: input.paymentMethod,
+    paymentMethod: 'COD',
     paymentStatus: 'PENDING',
     orderStatus: initialStatus,
     supplierStatus: hasNeedsConfirmationItem ? 'PENDING' : 'CONFIRMED',
@@ -167,8 +212,8 @@ export function createOrderServerSide(input: CreateOrderInput): {
         changedByUserId: input.userId || 'guest',
         changedByName: input.customerName,
         notes: hasNeedsConfirmationItem
-          ? 'تم إنشاء الطلب بنجاح، ويتضمن منتجات تتطلب تأكيد التوفر لدى المورد'
-          : 'تم إنشاء الطلب وجارٍ مراجعته وتجهيزه',
+          ? 'تم تسجيل طلب رغبة الشراء بنجاح، ويتضمن منتجات قيد تأكيد توفر الدفعة لدى المورد'
+          : 'تم تسجيل طلب رغبة الشراء بنجاح وجارٍ مراجعته من الإدارة لتأكيد عرض السعر',
         createdAt: now,
       },
     ],
@@ -231,11 +276,12 @@ export function executeOrderStatusTransition(params: {
     };
   }
 
-  // Check role authorization
-  if (!canUserPerformTransition(params.userRole, order.orderStatus, params.newStatus)) {
+  // Check role authorization with 6-hour cancellation check
+  const authCheck = canUserPerformTransition(params.userRole, order.orderStatus, params.newStatus, order);
+  if (!authCheck.allowed) {
     return {
       success: false,
-      message: 'ليس لديك صلاحية تنفيذ هذا الانتقال',
+      message: authCheck.reason || 'ليس لديك صلاحية تنفيذ هذا الانتقال',
     };
   }
 
@@ -307,4 +353,162 @@ export function executeOrderStatusTransition(params: {
   });
 
   return { success: true, message: 'تم تحديث حالة الطلب بنجاح', order };
+}
+
+// ---------------- QUOTATION WORKFLOW (Directive Sec 7 & 12) ----------------
+
+export function prepareOrderQuotation(params: {
+  orderId: string;
+  deliveryFee: number;
+  adminUserId: string;
+  adminUserName: string;
+  notes?: string;
+}): { success: boolean; message: string; order?: Order } {
+  const order = getOrderById(params.orderId);
+  if (!order) {
+    return { success: false, message: 'الطلب غير موجود' };
+  }
+
+  const now = new Date().toISOString();
+  order.deliveryFee = Math.max(0, params.deliveryFee);
+  order.totalAmount = order.subtotal + order.deliveryFee;
+  order.quotationStatus = 'SENT';
+  order.quotationNumber = `Q-${order.orderNumber}`;
+  order.quotationSentAt = now;
+  order.updatedAt = now;
+
+  order.statusHistory.push({
+    id: `hist-${Date.now()}`,
+    orderId: order.id,
+    previousStatus: order.orderStatus,
+    newStatus: order.orderStatus,
+    changedByUserId: params.adminUserId,
+    changedByName: params.adminUserName,
+    notes: `تم إصدار عرض السعر النهائي رقم ${order.quotationNumber} بقيمة إجمالية ${order.totalAmount} ج.م (شاملة الشحن ${order.deliveryFee} ج.م). ${params.notes || ''}`,
+    createdAt: now,
+  });
+
+  saveOrder(order);
+
+  // Notify customer
+  if (order.userId) {
+    addNotification({
+      id: `notif-${Date.now()}-${order.userId}`,
+      userId: order.userId,
+      title: `عرض سعر نهائي لطلبك ${order.orderNumber}`,
+      message: `أصدرت الإدارة عرض السعر رقم ${order.quotationNumber} بقيمة إجمالية ${order.totalAmount} ج.م. يرجى مراجعته واعتماده لتأكيد خروج الشحنة.`,
+      link: `/orders/${order.id}`,
+      isRead: false,
+      createdAt: now,
+    });
+  }
+
+  // Audit log
+  addAuditLog({
+    id: `audit-${Date.now()}`,
+    userId: params.adminUserId,
+    userName: params.adminUserName,
+    userRole: 'admin',
+    action: 'PREPARE_QUOTATION',
+    entityType: 'ORDER',
+    entityId: order.id,
+    details: `إصدار عرض السعر رقم ${order.quotationNumber} برسوم توصيل ${order.deliveryFee} ج.م`,
+    createdAt: now,
+  });
+
+  return { success: true, message: 'تم إعداد وإرسال عرض السعر النهائي بنجاح', order };
+}
+
+export function customerAcceptQuotation(params: {
+  orderId: string;
+  userId: string;
+  userName: string;
+}): { success: boolean; message: string; order?: Order } {
+  const order = getOrderById(params.orderId);
+  if (!order) {
+    return { success: false, message: 'الطلب غير موجود' };
+  }
+
+  if (order.quotationStatus !== 'SENT') {
+    return { success: false, message: 'لا يوجد عرض سعر معلق بانتظار الاعتماد' };
+  }
+
+  const now = new Date().toISOString();
+  order.quotationStatus = 'ACCEPTED';
+  order.quotationAcceptedAt = now;
+  order.orderStatus = 'CONFIRMED';
+  order.supplierStatus = 'CONFIRMED';
+  order.updatedAt = now;
+
+  order.statusHistory.push({
+    id: `hist-${Date.now()}`,
+    orderId: order.id,
+    previousStatus: 'PENDING',
+    newStatus: 'CONFIRMED',
+    changedByUserId: params.userId,
+    changedByName: params.userName,
+    notes: `قام العميل بقبول واعتماد عرض السعر النهائي (${order.totalAmount} ج.م) وتم تأكيد الطلب رسمياً للبدء في التجهيز والشحن.`,
+    createdAt: now,
+  });
+
+  saveOrder(order);
+
+  addAuditLog({
+    id: `audit-${Date.now()}`,
+    userId: params.userId,
+    userName: params.userName,
+    userRole: 'customer',
+    action: 'ACCEPT_QUOTATION',
+    entityType: 'ORDER',
+    entityId: order.id,
+    details: `موافقة العميل على عرض السعر ${order.quotationNumber} والانتقال للحالة CONFIRMED`,
+    createdAt: now,
+  });
+
+  return { success: true, message: 'تم اعتماد عرض السعر وتأكيد الطلب بنجاح', order };
+}
+
+export function customerRejectQuotation(params: {
+  orderId: string;
+  userId: string;
+  userName: string;
+  reason?: string;
+}): { success: boolean; message: string; order?: Order } {
+  const order = getOrderById(params.orderId);
+  if (!order) {
+    return { success: false, message: 'الطلب غير موجود' };
+  }
+
+  const now = new Date().toISOString();
+  order.quotationStatus = 'REJECTED';
+  order.orderStatus = 'CANCELLED';
+  order.cancelReason = params.reason || 'رفض العميل عرض السعر النهائي';
+  order.updatedAt = now;
+
+  order.statusHistory.push({
+    id: `hist-${Date.now()}`,
+    orderId: order.id,
+    previousStatus: 'PENDING',
+    newStatus: 'CANCELLED',
+    changedByUserId: params.userId,
+    changedByName: params.userName,
+    notes: `قام العميل برفض عرض السعر النهائي. سبب الإلغاء: ${order.cancelReason}`,
+    createdAt: now,
+  });
+
+  saveOrder(order);
+
+  addAuditLog({
+    id: `audit-${Date.now()}`,
+    userId: params.userId,
+    userName: params.userName,
+    userRole: 'customer',
+    action: 'REJECT_QUOTATION',
+    entityType: 'ORDER',
+    entityId: order.id,
+    details: `رفض العميل لعرض السعر ${order.quotationNumber}. السبب: ${order.cancelReason}`,
+    createdAt: now,
+  });
+
+  return { success: true, message: 'تم إلغاء الطلب بناءً على رفض عرض السعر', order };
 }

@@ -132,7 +132,19 @@ export default function AdminOrdersPage() {
                   return (
                     <tr key={ord.id} className="hover:bg-ivory-50/50 transition-colors">
                       <td className="py-3.5 px-4 font-mono font-bold text-forest-950">
-                        {ord.orderNumber}
+                        <div>{ord.orderNumber}</div>
+                        {ord.quotationStatus && (
+                          <span className={`inline-block mt-1 px-2 py-0.5 text-[9px] rounded-full font-bold ${
+                            ord.quotationStatus === 'SENT' ? 'bg-amber-100 text-amber-800 border border-amber-300' :
+                            ord.quotationStatus === 'ACCEPTED' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
+                            ord.quotationStatus === 'REJECTED' ? 'bg-rose-100 text-rose-800 border border-rose-300' :
+                            'bg-blue-50 text-blue-800 border border-blue-200'
+                          }`}>
+                            {ord.quotationStatus === 'SENT' ? 'عرض مرسل' :
+                             ord.quotationStatus === 'ACCEPTED' ? 'معتمد' :
+                             ord.quotationStatus === 'REJECTED' ? 'مرفوض' : 'طلب رغبة'}
+                          </span>
+                        )}
                       </td>
                       <td className="py-3.5 px-4">
                         <p className="font-bold text-forest-950">{ord.customerName}</p>

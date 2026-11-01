@@ -13,7 +13,7 @@ export default function AnnouncementBar() {
             <Sparkles className="w-3 h-3 text-[#102d1c]" />
             دار العسل والزيتون
           </span>
-          <span className="text-gray-200">شحن مجاني للطلبات فوق 1200 ج.م — نقاء طبيعي 100% مضمون مخبرياً</span>
+          <span className="text-gray-200">نقاء طبيعي 100% موثق ومفحوص — خدمة التوصيل السريع والمبرّد في نطاق الإسكندرية</span>
         </div>
 
         <div className="hidden md:flex items-center gap-6 text-[11px] text-gray-300">

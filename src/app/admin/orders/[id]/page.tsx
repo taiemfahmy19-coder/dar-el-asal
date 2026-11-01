@@ -17,10 +17,13 @@ import {
   ShieldAlert,
   ArrowRight,
   Zap,
+  FileText,
+  FileCheck2,
 } from 'lucide-react';
 import { Order, CourierProfile, OrderStatus } from '@/lib/types';
 import { formatPrice, formatDate, ORDER_STATUS_MAP } from '@/lib/utils';
 import OrderTimeline from '@/components/orders/OrderTimeline';
+import OrderPrintDocument from '@/components/orders/OrderPrintDocument';
 
 export default function AdminOrderDetailPage() {
   const params = useParams();
@@ -33,6 +36,11 @@ export default function AdminOrderDetailPage() {
   const [selectedCourierId, setSelectedCourierId] = useState('');
   const [assigning, setAssigning] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [printModalOpen, setPrintModalOpen] = useState(false);
+  const [quotationModalOpen, setQuotationModalOpen] = useState(false);
+  const [quotationFee, setQuotationFee] = useState<number>(45);
+  const [quotationNotes, setQuotationNotes] = useState('');
+  const [issuingQuotation, setIssuingQuotation] = useState(false);
 
   const fetchOrderData = () => {
     if (!id) return;
@@ -127,6 +135,33 @@ export default function AdminOrderDetailPage() {
     }
   };
 
+  const handleIssueQuotation = async () => {
+    if (!order) return;
+    setIssuingQuotation(true);
+    try {
+      const res = await fetch(`/api/orders/${order.id}/status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'PREPARE_QUOTATION',
+          deliveryFee: Number(quotationFee),
+          notes: quotationNotes || 'تم تدقيق التوفر واحتساب تعرفة التوصيل بمدينة الإسكندرية',
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setQuotationModalOpen(false);
+        fetchOrderData();
+      } else {
+        alert(data.error || 'فشل إصدار عرض السعر');
+      }
+    } catch {
+      alert('حدث خطأ في الاتصال');
+    } finally {
+      setIssuingQuotation(false);
+    }
+  };
+
   if (loading || !order) {
     return (
       <div className="p-12 text-center text-gray-500">
@@ -159,11 +194,11 @@ export default function AdminOrderDetailPage() {
 
         <div className="flex items-center gap-3">
           <button
-            onClick={() => window.print()}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-ivory-300 text-xs font-bold text-gray-700 hover:bg-ivory-100 shadow-sm"
+            onClick={() => setPrintModalOpen(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-forest-900 text-gold-300 hover:bg-forest-800 text-xs font-bold border border-forest-700 shadow-sm"
           >
-            <Printer className="w-4 h-4" />
-            <span>طباعة بوليصة الشحن والفاتورة</span>
+            <Printer className="w-4 h-4 text-gold-400" />
+            <span>طباعة المستند الرسمي (QR التحقق)</span>
           </button>
 
           <Link
@@ -182,6 +217,43 @@ export default function AdminOrderDetailPage() {
           <Package className="w-5 h-5 text-gold-400" />
           <span>إجراءات التشغيل والتوزيع (سير العمل)</span>
         </h2>
+
+        {/* Quotation Management Box */}
+        <div className="bg-forest-950/80 p-5 rounded-2xl border border-gold-900/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <FileCheck2 className="w-4 h-4 text-gold-400" />
+              <span className="font-bold text-gold-300 text-sm">حالة عرض السعر (Quotation):</span>
+              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-gold-400/20 text-gold-300 border border-gold-400/40">
+                {order.quotationStatus === 'SENT'
+                  ? 'تم إرسال عرض السعر (بانتظار موافقة العميل)'
+                  : order.quotationStatus === 'ACCEPTED'
+                  ? 'اعتمد العميل عرض السعر بنجاح ✓'
+                  : order.quotationStatus === 'REJECTED'
+                  ? 'رفض العميل عرض السعر ✗'
+                  : 'طلب رغبة شراء (بانتظار مراجعة الإدارة واحتساب الشحن)'}
+              </span>
+            </div>
+            <p className="text-[11px] text-ivory-300">
+              {order.quotationNumber ? `رقم العرض: ${order.quotationNumber} — ` : ''}
+              رسوم التوصيل المحددة: {formatPrice(order.deliveryFee)} | إجمالي الطلب: {formatPrice(order.totalAmount)}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                setQuotationFee(order.deliveryFee || 45);
+                setQuotationNotes(order.notes || '');
+                setQuotationModalOpen(true);
+              }}
+              className="px-4 py-2 rounded-xl bg-gold-500 hover:bg-gold-400 text-forest-950 font-bold text-xs shadow-sm flex items-center gap-1.5 transition-colors"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>إصدار / تحديث عرض السعر</span>
+            </button>
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
           
@@ -386,6 +458,92 @@ export default function AdminOrderDetailPage() {
         <h3 className="font-bold text-sm text-forest-950 mb-6">السجل الزمني للتحديثات</h3>
         <OrderTimeline order={order} />
       </div>
+
+      {/* Quotation Modal */}
+      {quotationModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full border border-ivory-200 shadow-floating space-y-4 text-right">
+            <div className="flex items-center justify-between border-b border-ivory-200 pb-3">
+              <h3 className="font-bold text-base text-forest-950">إصدار عرض سعر نهائي معتمد</h3>
+              <span className="font-mono text-xs font-bold text-forest-800">{order.orderNumber}</span>
+            </div>
+            
+            <p className="text-xs text-gray-600 leading-relaxed">
+              تحديد رسوم التوصيل وفقاً لتعرفة شركة الشحن بمنطقة العميل في الإسكندرية ({order.governorate} - {order.city}).
+            </p>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold text-forest-950 mb-1">
+                  المجموع الفرعي للمنتجات:
+                </label>
+                <div className="p-2.5 rounded-xl bg-ivory-100 font-bold text-forest-900">
+                  {formatPrice(order.subtotal)}
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-forest-950 mb-1">
+                  رسوم التوصيل المعتمدة (ج.م):
+                </label>
+                <input
+                  type="number"
+                  value={quotationFee}
+                  onChange={(e) => setQuotationFee(Number(e.target.value))}
+                  className="w-full p-2.5 rounded-xl bg-ivory-50 border border-ivory-300 font-bold text-forest-950 focus:outline-none"
+                />
+              </div>
+
+              <div className="p-3 rounded-xl bg-gold-50 border border-gold-200">
+                <span className="text-[11px] text-forest-900 font-bold block mb-0.5">
+                  الإجمالي النهائي بعد التوصيل:
+                </span>
+                <span className="text-base font-black text-forest-950">
+                  {formatPrice(order.subtotal + Number(quotationFee || 0))}
+                </span>
+              </div>
+
+              <div>
+                <label className="block font-bold text-forest-950 mb-1">
+                  ملاحظات أو شروط خاصة بالعرض:
+                </label>
+                <textarea
+                  rows={2}
+                  value={quotationNotes}
+                  onChange={(e) => setQuotationNotes(e.target.value)}
+                  placeholder="مثال: التوصيل متاح يوم الأحد بين 12 و 3 عصراً مع فحص المنتج قبل الاستلام..."
+                  className="w-full p-2.5 rounded-xl bg-ivory-50 border border-ivory-300 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                onClick={handleIssueQuotation}
+                disabled={issuingQuotation}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-forest-900 hover:bg-forest-800 text-gold-300 font-bold text-xs disabled:opacity-50 shadow-md"
+              >
+                {issuingQuotation ? 'جارٍ إصدار العرض...' : 'اعتماد وإرسال للعميل ✓'}
+              </button>
+              <button
+                onClick={() => setQuotationModalOpen(false)}
+                className="py-2.5 px-4 rounded-xl bg-ivory-100 hover:bg-ivory-200 text-gray-700 font-bold text-xs"
+              >
+                إلغاء
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Print Document & QR Modal */}
+      {printModalOpen && (
+        <OrderPrintDocument
+          order={order}
+          type={order.quotationStatus === 'SENT' ? 'quotation' : 'confirmation'}
+          onClose={() => setPrintModalOpen(false)}
+        />
+      )}
 
     </div>
   );

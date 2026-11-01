@@ -2,16 +2,16 @@ import { Category, Product, Supplier, User, Order, CourierProfile, DeliveryAppli
 import bcrypt from 'bcryptjs';
 
 // Pre-hashed passwords for deterministic, instant seed loading
-// Password 'bazaar123456' hashed with bcrypt:
-const DEFAULT_HASH = bcrypt.hashSync('bazaar123456', 10);
+// Password 'darelasal123456' hashed with bcrypt:
+const DEFAULT_HASH = bcrypt.hashSync('darelasal123456', 10);
 
 export const SEED_USERS: User[] = [
   {
     id: 'user-admin-1',
-    name: 'م. طارق العريان (المدير العام)',
-    email: 'admin@bazaar.local',
+    name: 'شادي محمد توفيق (المالك والمدير العام)',
+    email: 'shady@darelasal.eg',
     passwordHash: DEFAULT_HASH,
-    phone: '01001234567',
+    phone: '',
     role: 'admin',
     status: 'active',
     avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
@@ -20,8 +20,8 @@ export const SEED_USERS: User[] = [
   },
   {
     id: 'user-courier-1',
-    name: 'أحمد محمود النجار (مندوب معتمد)',
-    email: 'courier@bazaar.local',
+    name: 'أحمد محمود النجار (مندوب شركة التوصيل)',
+    email: 'courier@darelasal.eg',
     passwordHash: DEFAULT_HASH,
     phone: '01123456789',
     role: 'delivery',
@@ -32,8 +32,8 @@ export const SEED_USERS: User[] = [
   },
   {
     id: 'user-courier-2',
-    name: 'محمود عبد الرحيم السوهاجي (مندوب معتمد)',
-    email: 'courier2@bazaar.local',
+    name: 'محمود عبد الرحيم السوهاجي (مندوب شركة التوصيل)',
+    email: 'courier2@darelasal.eg',
     passwordHash: DEFAULT_HASH,
     phone: '01234567890',
     role: 'delivery',
@@ -45,7 +45,7 @@ export const SEED_USERS: User[] = [
   {
     id: 'user-customer-1',
     name: 'سارة عبد الله المنصوري',
-    email: 'customer@bazaar.local',
+    email: 'customer@darelasal.eg',
     passwordHash: DEFAULT_HASH,
     phone: '01098765432',
     role: 'customer',
@@ -62,9 +62,9 @@ export const SEED_COURIER_PROFILES: CourierProfile[] = [
     userId: 'user-courier-1',
     fullName: 'أحمد محمود النجار',
     phone: '01123456789',
-    email: 'courier@bazaar.local',
-    governorate: 'القاهرة',
-    coveredAreas: 'المعادي، التجمع، مدينة نصر، مصر الجديدة',
+    email: 'courier@darelasal.local',
+    governorate: 'الإسكندرية',
+    coveredAreas: 'سموحة، رشدي، لوران، سيدي جابر',
     vehicleType: 'دراجة نارية مجهزة بصندوق عازل',
     nationalId: '29304150102345',
     status: 'AVAILABLE',
@@ -78,9 +78,9 @@ export const SEED_COURIER_PROFILES: CourierProfile[] = [
     userId: 'user-courier-2',
     fullName: 'محمود عبد الرحيم السوهاجي',
     phone: '01234567890',
-    email: 'courier2@bazaar.local',
-    governorate: 'الجيزة',
-    coveredAreas: 'الدقي، المهندسين، الشيخ زايد، 6 أكتوبر',
+    email: 'courier2@darelasal.local',
+    governorate: 'الإسكندرية',
+    coveredAreas: 'ميامي، المندرة، سيدي بشر، المنتزه',
     vehicleType: 'سيارة نقل بضائع خفيفة مبردة',
     nationalId: '29108200109876',
     status: 'AVAILABLE',
@@ -928,10 +928,10 @@ export const SEED_PRODUCTS: Product[] = [
 export const SEED_ORDERS: Order[] = [
   {
     id: 'ord-1001',
-    orderNumber: 'BZR-2026-1001',
+    orderNumber: 'DO-2026-1001',
     userId: 'user-customer-1',
     customerName: 'سارة عبد الله المنصوري',
-    customerEmail: 'customer@bazaar.local',
+    customerEmail: 'customer@darelasal.local',
     customerPhone: '01098765432',
     governorate: 'القاهرة',
     city: 'المعادي',
@@ -1042,7 +1042,7 @@ export const SEED_ORDERS: Order[] = [
   },
   {
     id: 'ord-1002',
-    orderNumber: 'BZR-2026-1002',
+    orderNumber: 'DO-2026-1002',
     userId: 'user-customer-1',
     customerName: 'د. خالد إبراهيم',
     customerEmail: 'khaled.ibrahim@example.com',
@@ -1141,7 +1141,7 @@ export const SEED_ORDERS: Order[] = [
   },
   {
     id: 'ord-1003',
-    orderNumber: 'BZR-2026-1003',
+    orderNumber: 'DO-2026-1003',
     customerName: 'مريم عثمان عبد الكريم',
     customerEmail: 'mariam.othman@example.com',
     customerPhone: '01511223344',
@@ -1243,21 +1243,20 @@ export const SEED_REVIEWS: Review[] = [
 export const SEED_STORE_SETTINGS: StoreSettings = {
   storeName: 'دار العسل والزيتون | DAR EL ASAL & OLIVE',
   storeTagline: 'عش فخامة الطبيعة بأنقى صورها — عسل نحل طبيعي وزيت زيتون بكر ممتاز',
-  storePhone: '01001234567',
-  storeEmail: 'contact@dar-asal-olive.eg',
-  storeAddress: 'القاهرة - مصر',
+  storePhone: '',
+  storeEmail: 'contact@darelasal.eg',
+  storeAddress: 'الإسكندرية - مصر',
   currency: 'ج.م',
-  freeShippingThreshold: 1200,
+  freeShippingThreshold: 0,
   defaultDeliveryFee: 45,
   governorateDeliveryFees: {
-    'القاهرة': 40,
-    'الجيزة': 40,
-    'الإسكندرية': 55,
-    'القليوبية': 50,
-    'الشرقية': 60,
+    'الإسكندرية': 45,
+    'البحيرة': 60,
+    'القاهرة': 65,
+    'الجيزة': 65,
   },
   minOrderAmount: 150,
   orderConfirmationNote: 'نحرص في دار العسل والزيتون على فحص وتحليل كل طلب لدى المناحل والمعاصر لضمان وصول أعلى جودة طازجة إلى باب بيتك.',
-  enableAutoAssignment: true,
+  enableAutoAssignment: false,
   autoAssignMaxOrdersPerCourier: 5,
 };

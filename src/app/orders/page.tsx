@@ -86,7 +86,7 @@ export default function OrdersHistoryPage() {
             </div>
             <h3 className="text-lg font-bold text-forest-950">لا توجد طلبات سابقة حتى الآن</h3>
             <p className="text-xs text-gray-500 max-w-sm mx-auto">
-              ابدأ الآن بتجربة منتجات بازار الطبيعية المفحوصة مخبرياً واطلب دفعتك الطازجة.
+              ابدأ الآن باختيار أجود أعسال وزيوت دار العسل والزيتون الطبيعية المفحوصة مخبرياً واطلب دفعتك الطازجة.
             </p>
             <Link
               href="/products"

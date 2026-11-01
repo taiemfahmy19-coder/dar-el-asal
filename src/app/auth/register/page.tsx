@@ -43,14 +43,14 @@ export default function RegisterPage() {
       <div className="max-w-md w-full bg-white rounded-3xl p-8 sm:p-10 border border-ivory-200 shadow-premium space-y-6">
         
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-forest-900 text-gold-400 flex items-center justify-center mx-auto text-xl font-bold shadow-subtle border border-forest-800">
-            بـ
+          <div className="w-14 h-14 rounded-2xl bg-[#143823] text-[#c59b27] flex items-center justify-center mx-auto text-xl font-bold shadow-subtle border border-[#c59b27]/40">
+            🍯
           </div>
-          <h1 className="text-2xl font-black text-forest-950 font-cairo">
+          <h1 className="text-2xl font-bold text-[#143823] font-cairo">
             إنشاء حساب عميل جديد
           </h1>
           <p className="text-xs text-gray-500">
-            انضم إلى مجتمع بازار وتمتع بتتبع طلباتك وحفظ عناوينك المفضلة
+            دار العسل والزيتون | DAR EL ASAL & OLIVE
           </p>
         </div>
 
