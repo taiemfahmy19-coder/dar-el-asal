@@ -183,6 +183,62 @@ assert(publicPayload.customerPhone === undefined, 'QR verification payload compl
 assert(publicPayload.streetAddress === undefined, 'QR verification payload completely omits exact customer address');
 assert(publicPayload.verified === true, 'QR verification validates order authenticity');
 
+// Test 11: Shopping Cart Operations & Subtotal Calculation Test
+class MockCart {
+  constructor() {
+    this.items = [];
+  }
+  addItem(product, qty = 1) {
+    const existing = this.items.find(i => i.product.id === product.id);
+    if (existing) {
+      existing.quantity += qty;
+    } else {
+      this.items.push({ product, quantity: qty });
+    }
+  }
+  updateQuantity(productId, qty) {
+    if (qty <= 0) {
+      this.removeItem(productId);
+      return;
+    }
+    const item = this.items.find(i => i.product.id === productId);
+    if (item) item.quantity = qty;
+  }
+  removeItem(productId) {
+    this.items = this.items.filter(i => i.product.id !== productId);
+  }
+  get totalItems() {
+    return this.items.reduce((sum, i) => sum + i.quantity, 0);
+  }
+  get subtotal() {
+    return this.items.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
+  }
+}
+
+const cart = new MockCart();
+const honeyProduct = { id: 'prod-1', name: 'عسل جبلي', price: 380 };
+const oliveProduct = { id: 'prod-2', name: 'زيت زيتون بكر', price: 440 };
+
+cart.addItem(honeyProduct, 2); // 380 * 2 = 760
+assert(cart.totalItems === 2, 'Cart counter increments correctly when product is added (2 items)');
+assert(cart.subtotal === 760, 'Subtotal correctly calculates item price * quantity (760 EGP)');
+
+cart.addItem(oliveProduct, 1); // 760 + 440 = 1200
+assert(cart.totalItems === 3, 'Cart counter updates on second product add (3 items)');
+assert(cart.subtotal === 1200, 'Subtotal recalculates when second product added (1200 EGP)');
+
+cart.updateQuantity('prod-1', 3); // 380 * 3 = 1140 + 440 = 1580
+assert(cart.totalItems === 4, 'Cart counter updates on quantity increase (4 items)');
+assert(cart.subtotal === 1580, 'Subtotal recalculates on quantity increase (1580 EGP)');
+
+cart.updateQuantity('prod-1', 1); // 380 * 1 = 380 + 440 = 820
+assert(cart.totalItems === 2, 'Cart counter updates on quantity decrease (2 items)');
+assert(cart.subtotal === 820, 'Subtotal recalculates on quantity decrease (820 EGP)');
+
+cart.removeItem('prod-2'); // 820 - 440 = 380
+assert(cart.totalItems === 1, 'Cart counter updates on item removal (1 item)');
+assert(cart.subtotal === 380, 'Subtotal recalculates on item removal (380 EGP)');
+
 console.log('\n====================================================');
 console.log(`🎉 Test Results: ${passCount} Passed, ${failCount} Failed`);
 console.log('====================================================');

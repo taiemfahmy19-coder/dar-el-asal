@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import {
   Heart,
   ShoppingBag,
@@ -22,6 +22,7 @@ import ProductCard from '@/components/products/ProductCard';
 
 export default function ProductDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const id = params?.id as string;
 
   const { addItem } = useCart();
@@ -33,6 +34,12 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
   const [addedAnimation, setAddedAnimation] = useState(false);
+
+  const handleBuyNow = () => {
+    if (!product || product.status === 'UNAVAILABLE') return;
+    addItem(product, quantity);
+    router.push('/cart');
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -237,20 +244,20 @@ export default function ProductDetailPage() {
 
               {/* Quantity & CTA */}
               <div className="space-y-4 pt-4 border-t border-[#d2d2d7]/40">
-                <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4">
-                  <div className="flex items-center border border-[#d2d2d7]/80 rounded-[980px] bg-[#f5f5f7] p-1">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  <div className="flex items-center justify-between border border-[#d2d2d7]/80 rounded-xl bg-[#f5f5f7] p-1 shrink-0">
                     <button
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="w-9 h-9 rounded-full bg-white flex items-center justify-center font-bold text-[#1d1d1f] shadow-sm hover:bg-gray-100"
+                      className="w-9 h-9 rounded-lg bg-white flex items-center justify-center font-bold text-[#1d1d1f] shadow-sm hover:bg-gray-100"
                     >
                       -
                     </button>
-                    <span className="w-12 text-center text-sm font-semibold text-[#1d1d1f]">
+                    <span className="w-12 text-center text-sm font-bold text-[#1d1d1f]">
                       {quantity}
                     </span>
                     <button
                       onClick={() => setQuantity(quantity + 1)}
-                      className="w-9 h-9 rounded-full bg-white flex items-center justify-center font-bold text-[#1d1d1f] shadow-sm hover:bg-gray-100"
+                      className="w-9 h-9 rounded-lg bg-white flex items-center justify-center font-bold text-[#1d1d1f] shadow-sm hover:bg-gray-100"
                     >
                       +
                     </button>
@@ -259,25 +266,34 @@ export default function ProductDetailPage() {
                   <button
                     onClick={handleAddToCart}
                     disabled={product.status === 'UNAVAILABLE'}
-                    className={`w-full sm:flex-1 inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-[980px] font-semibold text-sm transition-all shadow-sm active:scale-95 ${
+                    className={`flex-1 inline-flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl font-bold text-xs transition-all shadow-sm active:scale-95 ${
                       product.status === 'UNAVAILABLE'
                         ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                         : addedAnimation
                         ? 'bg-emerald-600 text-white'
-                        : 'bg-[#143823] text-[#f5ebd2] hover:bg-[#1a4a2f] border border-[#c59b27]/60 hover:scale-[1.02]'
+                        : 'bg-white text-forest-900 border border-forest-900/30 hover:bg-ivory-50'
                     }`}
                   >
                     {addedAnimation ? (
                       <>
-                        <Check className="w-4 h-4" />
-                        <span>تمت الإضافة للسلة ({quantity})</span>
+                        <Check className="w-4 h-4 text-white" />
+                        <span>تمت الإضافة للسلة ✓</span>
                       </>
                     ) : (
                       <>
-                        <ShoppingBag className="w-4 h-4 text-white/90" />
-                        <span>إضافة إلى سلة المشتريات</span>
+                        <ShoppingBag className="w-4 h-4 text-forest-900" />
+                        <span>إضافة إلى السلة</span>
                       </>
                     )}
+                  </button>
+
+                  <button
+                    onClick={handleBuyNow}
+                    disabled={product.status === 'UNAVAILABLE'}
+                    className="flex-1 inline-flex items-center justify-center gap-2 py-3.5 px-5 rounded-xl bg-forest-900 text-gold-300 font-bold text-xs hover:bg-forest-800 transition-all shadow-md active:scale-95 border border-forest-700"
+                  >
+                    <ShoppingBag className="w-4 h-4 text-gold-400" />
+                    <span>إتمام عملية الشراء</span>
                   </button>
                 </div>
 

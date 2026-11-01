@@ -20,6 +20,7 @@ import { useAuth } from '@/components/context/AuthContext';
 import { useCart } from '@/components/context/CartContext';
 import { useWishlist } from '@/components/context/WishlistContext';
 import { USER_ROLE_MAP } from '@/lib/utils';
+import CartNotificationToast from '@/components/cart/CartNotificationToast';
 
 export default function Header() {
   const router = useRouter();
@@ -126,18 +127,40 @@ export default function Header() {
               )}
             </Link>
 
-            {/* Cart */}
+            {/* Cart with "السلة" label on Desktop AND Mobile */}
             <Link
               href="/cart"
-              className="relative p-1.5 sm:p-2.5 bg-[#f5f5f7] text-[#1d1d1f] hover:bg-gray-200/70 transition-colors rounded-full border border-[#d2d2d7]/70 flex items-center gap-1 sm:gap-2"
+              className="relative py-1 px-2 sm:py-2 sm:px-3 bg-[#f5f5f7] hover:bg-gold-50/70 text-[#143823] transition-all rounded-full border border-[#d2d2d7]/80 flex items-center gap-1 sm:gap-1.5 shadow-sm shrink-0"
               title="سلة المشتريات"
             >
-              <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5 text-[#1d1d1f]" />
-              <span className="hidden md:inline text-xs font-medium text-[#1d1d1f]">
+              <div className="relative">
+                <ShoppingBag className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 text-[#143823]" />
+                {totalItems > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-gradient-to-r from-amber-500 to-gold-500 text-forest-950 text-[9px] sm:text-[10px] w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full flex items-center justify-center font-black shadow-sm border border-white">
+                    {totalItems}
+                  </span>
+                )}
+              </div>
+              <span className="text-[11px] sm:text-xs font-bold text-[#143823]">
                 السلة
               </span>
               {totalItems > 0 && (
-                <span className="bg-[#143823] text-[#f5ebd2] text-[10px] sm:text-[11px] w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center font-bold shadow-sm border border-[#c59b27]/60">
+                <span className="text-[10px] sm:text-[11px] font-bold text-[#c59b27]">
+                  ({totalItems})
+                </span>
+              )}
+            </Link>
+
+            {/* Prominent Purchase Button ("إتمام عملية الشراء") */}
+            <Link
+              href="/cart"
+              className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-gradient-to-r from-[#143823] to-[#1f5636] hover:from-[#1a4a2f] hover:to-[#286f45] text-[#f5ebd2] font-bold text-[10px] sm:text-xs border border-[#c59b27]/80 shadow-sm hover:shadow-md transition-all active:scale-95 shrink-0"
+              title="إتمام عملية الشراء والانتقال إلى السلة"
+            >
+              <ShoppingBag className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#c59b27] shrink-0" />
+              <span>إتمام عملية الشراء</span>
+              {totalItems > 0 && (
+                <span className="hidden sm:inline-block bg-[#c59b27] text-[#143823] text-[9px] font-black px-1.5 py-0.2 rounded-full">
                   {totalItems}
                 </span>
               )}
@@ -324,6 +347,9 @@ export default function Header() {
           </nav>
         </div>
       )}
+
+      {/* Cart Realtime Add Notification Toast */}
+      <CartNotificationToast />
     </header>
   );
 }

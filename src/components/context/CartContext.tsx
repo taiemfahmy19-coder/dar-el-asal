@@ -8,6 +8,11 @@ export interface CartItem {
   quantity: number;
 }
 
+export interface CartNotification {
+  product: Product;
+  quantity: number;
+}
+
 interface CartContextType {
   items: CartItem[];
   addItem: (product: Product, quantity?: number) => void;
@@ -16,6 +21,8 @@ interface CartContextType {
   clearCart: () => void;
   totalItems: number;
   subtotal: number;
+  lastNotification: CartNotification | null;
+  dismissNotification: () => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -25,6 +32,7 @@ const CART_STORAGE_KEY = 'darelasal_cart_items';
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [lastNotification, setLastNotification] = useState<CartNotification | null>(null);
 
   useEffect(() => {
     try {
@@ -61,6 +69,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
       return [...prev, { product, quantity }];
     });
+    setLastNotification({ product, quantity });
   };
 
   const removeItem = (productId: string) => {
@@ -83,6 +92,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setItems([]);
   };
 
+  const dismissNotification = () => {
+    setLastNotification(null);
+  };
+
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const subtotal = items.reduce(
     (sum, item) => sum + item.product.price * item.quantity,
@@ -99,6 +112,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         clearCart,
         totalItems,
         subtotal,
+        lastNotification,
+        dismissNotification,
       }}
     >
       {children}
