@@ -42,99 +42,93 @@ export default function ProductCard({ product }: Props) {
   return (
     <div className="card group overflow-hidden border border-[#d2d2d7]/50 flex flex-col justify-between text-right relative">
       
-      {/* Top Media & Badges */}
-      <div className="relative aspect-square w-full bg-[#f5f5f7] rounded-[14px] overflow-hidden mb-4">
+      {/* Top Media - 100% Clean Image Viewport */}
+      <div className="relative aspect-[16/11] w-full bg-[#fbf9f4] rounded-[14px] overflow-hidden mb-3 p-1">
         <Link href={`/products/${product.id}`} className="block w-full h-full relative">
           <Image
             src={product.images[0] || '/images/honey/prod-honey-plain.jpg'}
             alt={product.name}
             fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            className="object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-apple-ease"
+            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+            className="object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out rounded-[12px]"
           />
         </Link>
 
-        {/* Wishlist Button */}
+        {/* Minimal Unobtrusive Wishlist Button */}
         <button
           onClick={handleToggleWishlist}
           aria-label="إضافة للمفضلة"
-          className="absolute top-3 left-3 w-9 h-9 rounded-full bg-white/90 backdrop-blur-md shadow-sm border border-[#d2d2d7]/60 flex items-center justify-center text-gray-500 hover:text-rose-500 hover:scale-105 active:scale-95 transition-all z-10"
+          className="absolute top-2 left-2 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/80 backdrop-blur-md shadow-sm border border-[#d2d2d7]/50 flex items-center justify-center text-gray-500 hover:text-rose-500 hover:scale-105 active:scale-95 transition-all z-10"
         >
           <Heart
-            className={`w-4 h-4 transition-transform ${
+            className={`w-3.5 h-3.5 transition-transform ${
               favorited ? 'fill-rose-500 text-rose-500' : ''
             }`}
           />
         </button>
-
-        {/* Discount & Feature Badges */}
-        <div className="absolute top-3 right-3 flex flex-col gap-1.5 items-end z-10">
-          {discountPercent && (
-            <span className="bg-rose-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-sm">
-              خصم {discountPercent}%
-            </span>
-          )}
-          {product.isFeatured && (
-            <span className="bg-[#1d1d1f]/90 backdrop-blur-md text-amber-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm border border-white/20">
-              <Sparkles className="w-2.5 h-2.5" />
-              مميّز
-            </span>
-          )}
-        </div>
-
-        {/* Weight Pill */}
-        <div className="absolute bottom-3 right-3 z-10">
-          <span className="bg-white/95 backdrop-blur-md text-[#1d1d1f] text-[11px] font-semibold px-2.5 py-0.5 rounded-full shadow-sm border border-[#d2d2d7]/60">
-            {product.weightVolume}
-          </span>
-        </div>
       </div>
 
       {/* Product Details */}
-      <div className="flex flex-col flex-1 justify-between gap-3">
+      <div className="flex flex-col flex-1 justify-between gap-2.5">
         
         <div className="space-y-1.5">
-          {/* Brand & Supplier Badge */}
-          <div className="flex items-center justify-between gap-1 mb-1">
-            <span className="text-[11px] font-bold text-[#143823] tracking-tight">
-              دار العسل والزيتون
-            </span>
+          {/* Brand & Supplier Badge & Featured */}
+          <div className="flex items-center justify-between gap-1 mb-0.5">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[11px] font-bold text-[#143823] tracking-tight">
+                دار العسل والزيتون
+              </span>
+              {product.isFeatured && (
+                <span className="bg-[#143823]/5 text-[#143823] border border-[#c59b27]/40 text-[9px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                  <Sparkles className="w-2.5 h-2.5 text-[#c59b27]" />
+                  مميّز
+                </span>
+              )}
+            </div>
             <SupplierStatusBadge status={product.status} size="sm" />
           </div>
 
           {/* Title */}
           <Link href={`/products/${product.id}`} className="block">
-            <h3 className="font-semibold text-base text-[#1d1d1f] line-clamp-1 group-hover:text-[#c59b27] transition-colors tracking-tight">
+            <h3 className="font-bold text-sm sm:text-base text-[#1d1d1f] line-clamp-1 group-hover:text-[#c59b27] transition-colors tracking-tight">
               {product.name}
             </h3>
           </Link>
 
-          {/* Origin & Category */}
-          <p className="text-xs text-[#515154] line-clamp-1">
-            <span>المصدر: {product.origin}</span>
-          </p>
+          {/* Origin & Weight Tag */}
+          <div className="flex items-center justify-between text-[11px] text-[#515154] pt-0.5">
+            <span className="truncate">المصدر: {product.origin}</span>
+            <span className="font-semibold text-[#143823] bg-amber-50/80 border border-amber-200/60 px-2 py-0.5 rounded-md text-[10px] shrink-0">
+              {product.weightVolume}
+            </span>
+          </div>
 
           {/* Rating */}
-          <div className="flex items-center gap-1.5 pt-0.5">
+          <div className="flex items-center gap-1 pt-0.5">
             <div className="flex items-center text-amber-500">
-              <Star className="w-3.5 h-3.5 fill-amber-400" />
+              <Star className="w-3 h-3 fill-amber-400" />
             </div>
             <span className="text-xs font-bold text-[#1d1d1f]">{product.rating}</span>
-            <span className="text-[11px] text-[#515154]">({product.reviewCount})</span>
+            <span className="text-[10px] text-[#515154]">({product.reviewCount})</span>
           </div>
         </div>
 
         {/* Price & Action */}
-        <div className="pt-3 border-t border-[#d2d2d7]/40 flex items-center justify-between gap-2 mt-2">
+        <div className="pt-2.5 border-t border-[#d2d2d7]/40 flex items-center justify-between gap-1.5 mt-1">
           
           <div className="flex flex-col">
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-base sm:text-lg font-bold text-[#1d1d1f]">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-sm sm:text-base font-extrabold text-[#143823]">
                 {formatPrice(product.price)}
               </span>
+              {discountPercent && (
+                <span className="bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                  خصم {discountPercent}%
+                </span>
+              )}
             </div>
             {product.originalPrice && (
-              <span className="text-xs text-[#515154] line-through">
+              <span className="text-[11px] text-[#8e8e93] line-through">
                 {formatPrice(product.originalPrice)}
               </span>
             )}
@@ -143,7 +137,7 @@ export default function ProductCard({ product }: Props) {
           <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
             <Link
               href={`/products/${product.id}`}
-              className="inline-flex items-center justify-center px-2 sm:px-3 py-1.5 rounded-[980px] text-[11px] sm:text-xs font-semibold bg-[#c59b27] text-white hover:bg-[#b0881e] hover:scale-[1.02] active:scale-95 transition-all shadow-sm whitespace-nowrap"
+              className="inline-flex items-center justify-center px-2 sm:px-3 py-1.5 rounded-[980px] text-[10px] sm:text-xs font-semibold bg-[#c59b27] text-white hover:bg-[#b0881e] active:scale-95 transition-all shadow-sm whitespace-nowrap"
             >
               التفاصيل
             </Link>

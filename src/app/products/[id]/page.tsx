@@ -111,30 +111,24 @@ export default function ProductDetailPage() {
             
             {/* Gallery Column */}
             <div className="lg:col-span-6 space-y-4">
-              <div className="relative aspect-square w-full rounded-[14px] overflow-hidden bg-[#f5f5f7] border border-[#d2d2d7]/50 shadow-sm">
+              <div className="relative aspect-[16/11] sm:aspect-square w-full rounded-[16px] overflow-hidden bg-[#fbf9f4] border border-[#d2d2d7]/50 shadow-sm p-2 sm:p-4 flex items-center justify-center">
                 <Image
                   src={product.images[selectedImageIndex] || product.images[0]}
                   alt={product.name}
                   fill
                   priority
-                  className="object-cover object-center"
+                  className="object-contain sm:object-cover object-center rounded-[12px]"
                 />
 
                 {/* Wishlist Button */}
                 <button
                   onClick={() => toggleFavorite(product.id)}
-                  className="absolute top-4 left-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur-md shadow-sm border border-[#d2d2d7]/60 flex items-center justify-center text-gray-500 hover:text-rose-500 hover:scale-105 active:scale-95 transition-all z-10"
+                  className="absolute top-3 left-3 sm:top-4 sm:left-4 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/85 backdrop-blur-md shadow-sm border border-[#d2d2d7]/60 flex items-center justify-center text-gray-500 hover:text-rose-500 hover:scale-105 active:scale-95 transition-all z-10"
                 >
                   <Heart
-                    className={`w-5 h-5 ${favorited ? 'fill-rose-500 text-rose-500' : ''}`}
+                    className={`w-4 h-4 sm:w-5 sm:h-5 ${favorited ? 'fill-rose-500 text-rose-500' : ''}`}
                   />
                 </button>
-
-                {discountPercent && (
-                  <span className="absolute top-4 right-4 bg-rose-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
-                    خصم {discountPercent}%
-                  </span>
-                )}
               </div>
 
               {/* Thumbnails */}
@@ -192,13 +186,18 @@ export default function ProductDetailPage() {
 
                 {/* Price Display */}
                 <div className="pt-2">
-                  <div className="flex items-baseline gap-3">
+                  <div className="flex items-center flex-wrap gap-2">
                     <span className="text-3xl font-bold text-[#1d1d1f]">
                       {formatPrice(product.price)}
                     </span>
                     {product.originalPrice && (
                       <span className="text-base text-[#515154] line-through">
                         {formatPrice(product.originalPrice)}
+                      </span>
+                    )}
+                    {discountPercent && (
+                      <span className="bg-rose-50 text-rose-700 border border-rose-200 text-xs font-bold px-2.5 py-1 rounded-full whitespace-nowrap">
+                        خصم {discountPercent}%
                       </span>
                     )}
                   </div>
