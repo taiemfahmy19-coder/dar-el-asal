@@ -97,7 +97,7 @@ export default function AdminOrdersPage() {
 
       </div>
 
-      {/* Orders Table */}
+      {/* Orders View: Responsive Cards on Mobile + Table on Desktop */}
       <div className="bg-white rounded-3xl border border-ivory-200 shadow-subtle overflow-hidden">
         {loading ? (
           <div className="p-12 text-center text-gray-400">
@@ -110,85 +110,148 @@ export default function AdminOrdersPage() {
             <p className="text-sm font-bold text-gray-600">لا توجد طلبات تطابق معايير البحث</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-right text-xs">
-              <thead>
-                <tr className="bg-ivory-50/70 border-b border-ivory-200 text-gray-500 font-bold">
-                  <th className="py-3.5 px-4">رقم الطلب</th>
-                  <th className="py-3.5 px-4">العميل والتواصل</th>
-                  <th className="py-3.5 px-4">المنطقة</th>
-                  <th className="py-3.5 px-4">الإجمالي</th>
-                  <th className="py-3.5 px-4">تكلفة المورد (COGS)</th>
-                  <th className="py-3.5 px-4">الربح التقديري</th>
-                  <th className="py-3.5 px-4">الحالة</th>
-                  <th className="py-3.5 px-4">المندوب المسند</th>
-                  <th className="py-3.5 px-4">إجراء</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-ivory-100">
-                {filteredOrders.map((ord) => {
-                  const conf = ORDER_STATUS_MAP[ord.orderStatus] || ORDER_STATUS_MAP.PENDING;
-
-                  return (
-                    <tr key={ord.id} className="hover:bg-ivory-50/50 transition-colors">
-                      <td className="py-3.5 px-4 font-mono font-bold text-forest-950">
-                        <div>{ord.orderNumber}</div>
+          <>
+            {/* Mobile Cards (Visible strictly on mobile < md) */}
+            <div className="md:hidden divide-y divide-ivory-100 p-2 space-y-3">
+              {filteredOrders.map((ord) => {
+                const conf = ORDER_STATUS_MAP[ord.orderStatus] || ORDER_STATUS_MAP.PENDING;
+                return (
+                  <div key={ord.id} className="p-4 bg-ivory-50/50 rounded-2xl border border-ivory-200 space-y-3">
+                    <div className="flex items-center justify-between border-b border-ivory-200/60 pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-forest-950 text-xs">{ord.orderNumber}</span>
                         {ord.quotationStatus && (
-                          <span className={`inline-block mt-1 px-2 py-0.5 text-[9px] rounded-full font-bold ${
-                            ord.quotationStatus === 'SENT' ? 'bg-amber-100 text-amber-800 border border-amber-300' :
-                            ord.quotationStatus === 'ACCEPTED' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
-                            ord.quotationStatus === 'REJECTED' ? 'bg-rose-100 text-rose-800 border border-rose-300' :
-                            'bg-blue-50 text-blue-800 border border-blue-200'
+                          <span className={`px-2 py-0.5 text-[9px] rounded-full font-bold ${
+                            ord.quotationStatus === 'SENT' ? 'bg-amber-100 text-amber-800' :
+                            ord.quotationStatus === 'ACCEPTED' ? 'bg-emerald-100 text-emerald-800' :
+                            ord.quotationStatus === 'REJECTED' ? 'bg-rose-100 text-rose-800' : 'bg-blue-50 text-blue-800'
                           }`}>
                             {ord.quotationStatus === 'SENT' ? 'عرض مرسل' :
                              ord.quotationStatus === 'ACCEPTED' ? 'معتمد' :
                              ord.quotationStatus === 'REJECTED' ? 'مرفوض' : 'طلب رغبة'}
                           </span>
                         )}
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <p className="font-bold text-forest-950">{ord.customerName}</p>
-                        <p className="text-[11px] text-gray-400">{ord.customerPhone}</p>
-                      </td>
-                      <td className="py-3.5 px-4 text-gray-600">
-                        {ord.governorate} - {ord.city}
-                      </td>
-                      <td className="py-3.5 px-4 font-black text-forest-950">
-                        {formatPrice(ord.totalAmount)}
-                      </td>
-                      <td className="py-3.5 px-4 font-bold text-amber-900">
-                        {formatPrice(ord.totalCost)}
-                      </td>
-                      <td className="py-3.5 px-4 font-black text-emerald-800">
-                        +{formatPrice(ord.estimatedProfit)}
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <span
-                          className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${conf.bg} ${conf.color} ${conf.border}`}
-                        >
-                          {conf.label}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-4 text-gray-700">
-                        {ord.assignedAgentName || (
-                          <span className="text-gray-400 text-[11px]">بانتظار الإسناد</span>
-                        )}
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <Link
-                          href={`/admin/orders/${ord.id}`}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-forest-900 text-white rounded-lg font-bold text-[11px] hover:bg-forest-800 shadow-sm"
-                        >
-                          <span>التفاصيل</span>
-                          <ArrowLeft className="w-3 h-3" />
-                        </Link>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                      </div>
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${conf.bg} ${conf.color} ${conf.border}`}>
+                        {conf.label}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-[11px]">
+                      <div>
+                        <span className="text-gray-400 block text-[10px]">العميل:</span>
+                        <span className="font-bold text-forest-950">{ord.customerName}</span>
+                        <span className="text-gray-500 block text-[10px]" dir="ltr">{ord.customerPhone}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-400 block text-[10px]">المنطقة:</span>
+                        <span className="text-gray-700">{ord.governorate} - {ord.city}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between bg-white p-2.5 rounded-xl border border-ivory-200/80 text-xs">
+                      <div>
+                        <span className="text-gray-400 block text-[9px]">الإجمالي:</span>
+                        <span className="font-black text-forest-950">{formatPrice(ord.totalAmount)}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-400 block text-[9px]">الربح:</span>
+                        <span className="font-bold text-emerald-800">+{formatPrice(ord.estimatedProfit)}</span>
+                      </div>
+                      <Link
+                        href={`/admin/orders/${ord.id}`}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-forest-900 text-gold-300 rounded-lg font-bold text-xs hover:bg-forest-800 shadow-sm"
+                      >
+                        <span>إدارة</span>
+                        <ArrowLeft className="w-3 h-3 text-gold-400" />
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop Full Table (Visible on md+) */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-right text-xs">
+                <thead>
+                  <tr className="bg-ivory-50/70 border-b border-ivory-200 text-gray-500 font-bold">
+                    <th className="py-3.5 px-4">رقم الطلب</th>
+                    <th className="py-3.5 px-4">العميل والتواصل</th>
+                    <th className="py-3.5 px-4">المنطقة</th>
+                    <th className="py-3.5 px-4">الإجمالي</th>
+                    <th className="py-3.5 px-4">تكلفة المورد (COGS)</th>
+                    <th className="py-3.5 px-4">الربح التقديري</th>
+                    <th className="py-3.5 px-4">الحالة</th>
+                    <th className="py-3.5 px-4">المندوب المسند</th>
+                    <th className="py-3.5 px-4">إجراء</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-ivory-100">
+                  {filteredOrders.map((ord) => {
+                    const conf = ORDER_STATUS_MAP[ord.orderStatus] || ORDER_STATUS_MAP.PENDING;
+
+                    return (
+                      <tr key={ord.id} className="hover:bg-ivory-50/50 transition-colors">
+                        <td className="py-3.5 px-4 font-mono font-bold text-forest-950">
+                          <div>{ord.orderNumber}</div>
+                          {ord.quotationStatus && (
+                            <span className={`inline-block mt-1 px-2 py-0.5 text-[9px] rounded-full font-bold ${
+                              ord.quotationStatus === 'SENT' ? 'bg-amber-100 text-amber-800 border border-amber-300' :
+                              ord.quotationStatus === 'ACCEPTED' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
+                              ord.quotationStatus === 'REJECTED' ? 'bg-rose-100 text-rose-800 border border-rose-300' :
+                              'bg-blue-50 text-blue-800 border border-blue-200'
+                            }`}>
+                              {ord.quotationStatus === 'SENT' ? 'عرض مرسل' :
+                               ord.quotationStatus === 'ACCEPTED' ? 'معتمد' :
+                               ord.quotationStatus === 'REJECTED' ? 'مرفوض' : 'طلب رغبة'}
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <p className="font-bold text-forest-950">{ord.customerName}</p>
+                          <p className="text-[11px] text-gray-400">{ord.customerPhone}</p>
+                        </td>
+                        <td className="py-3.5 px-4 text-gray-600">
+                          {ord.governorate} - {ord.city}
+                        </td>
+                        <td className="py-3.5 px-4 font-black text-forest-950">
+                          {formatPrice(ord.totalAmount)}
+                        </td>
+                        <td className="py-3.5 px-4 font-bold text-amber-900">
+                          {formatPrice(ord.totalCost)}
+                        </td>
+                        <td className="py-3.5 px-4 font-black text-emerald-800">
+                          +{formatPrice(ord.estimatedProfit)}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span
+                            className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${conf.bg} ${conf.color} ${conf.border}`}
+                          >
+                            {conf.label}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 text-gray-700">
+                          {ord.assignedAgentName || (
+                            <span className="text-gray-400 text-[11px]">بانتظار الإسناد</span>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <Link
+                            href={`/admin/orders/${ord.id}`}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-forest-900 text-white rounded-lg font-bold text-[11px] hover:bg-forest-800 shadow-sm"
+                          >
+                            <span>التفاصيل</span>
+                            <ArrowLeft className="w-3 h-3" />
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 

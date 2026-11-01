@@ -17,7 +17,7 @@ export default function FloatingMobileCartBar() {
   }
 
   return (
-    <div className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-xl border-t border-ivory-300 p-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] sm:hidden animate-in slide-in-from-bottom duration-200">
+    <div className="fixed bottom-16 inset-x-0 z-40 bg-white/95 backdrop-blur-xl border-t border-ivory-300 p-2.5 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] md:hidden animate-in slide-in-from-bottom duration-200">
       <div className="max-w-md mx-auto flex items-center justify-between gap-3 text-right">
         
         {/* Cart Item Count & Subtotal */}

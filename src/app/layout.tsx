@@ -7,6 +7,7 @@ import AnnouncementBar from '@/components/layout/AnnouncementBar';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import FloatingMobileCartBar from '@/components/cart/FloatingMobileCartBar';
+import MobileBottomBar from '@/components/layout/MobileBottomBar';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -53,6 +54,7 @@ export default function RootLayout({
               <main className="flex-1">{children}</main>
               <Footer />
               <FloatingMobileCartBar />
+              <MobileBottomBar />
             </WishlistProvider>
           </CartProvider>
         </AuthProvider>
