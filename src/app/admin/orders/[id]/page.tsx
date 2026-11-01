@@ -162,11 +162,30 @@ export default function AdminOrderDetailPage() {
     }
   };
 
-  if (loading || !order) {
+  if (loading) {
     return (
       <div className="p-12 text-center text-gray-500">
         <div className="w-8 h-8 border-4 border-forest-800 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
         <p className="text-xs">جارٍ جلب تفاصيل الطلب...</p>
+      </div>
+    );
+  }
+
+  if (!order) {
+    return (
+      <div className="p-12 text-center text-gray-600 space-y-4 max-w-md mx-auto">
+        <AlertCircle className="w-12 h-12 text-amber-500 mx-auto" />
+        <h3 className="text-lg font-bold text-forest-950">الطلب غير موجود</h3>
+        <p className="text-xs text-gray-500">لم يتم العثور على هذا الطلب، أو قد يكون تم إلغاؤه وتصفيره.</p>
+        <div className="pt-2">
+          <Link
+            href="/admin/orders"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-forest-900 text-gold-300 text-xs font-bold hover:bg-forest-800 transition-all shadow-sm"
+          >
+            <ArrowRight className="w-4 h-4" />
+            <span>العودة لكافة الطلبات</span>
+          </Link>
+        </div>
       </div>
     );
   }

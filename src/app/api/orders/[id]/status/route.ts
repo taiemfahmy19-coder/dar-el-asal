@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
-import { getOrderById, saveOrder, addAuditLog, getCourierProfileByUserId, saveCourierProfile, addNotification } from '@/lib/db';
+import {
+  getOrderById,
+  getOrderByIdAsync,
+  saveOrder,
+  addAuditLog,
+  getCourierProfileByUserId,
+  saveCourierProfile,
+  addNotification,
+  syncCloudDb,
+  syncCloudDbPush,
+  getDb,
+} from '@/lib/db';
 import { executeOrderStatusTransition, prepareOrderQuotation, customerAcceptQuotation, customerRejectQuotation } from '@/lib/order-engine';
 import { OrderStatus } from '@/lib/types';
 
@@ -11,7 +22,11 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       return NextResponse.json({ error: 'يجب تسجيل الدخول لتنفيذ هذا الإجراء' }, { status: 401 });
     }
 
-    const order = getOrderById(params.id);
+    let order = await getOrderByIdAsync(params.id);
+    if (!order) {
+      await syncCloudDb(true);
+      order = await getOrderByIdAsync(params.id);
+    }
     if (!order) {
       return NextResponse.json({ error: 'الطلب غير موجود' }, { status: 404 });
     }

@@ -47,6 +47,11 @@ const DATA_DIR = path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'darelasal-store.json');
 const FALLBACK_TMP_FILE = path.join('/tmp', 'darelasal-store.json');
 
+const CLOUD_GIST_ID = process.env.GITHUB_SYNC_GIST_ID || '6ff052b0bf27269c4937e5c2ca7d48b2';
+const CLOUD_GIST_TOKEN = process.env.GITHUB_SYNC_TOKEN || '';
+let lastCloudSyncTime = 0;
+const SYNC_CACHE_TTL = 2000;
+
 // In-memory cache
 let inMemoryDb: DatabaseState | null = null;
 
@@ -198,6 +203,68 @@ export function getDb(): DatabaseState {
   return inMemoryDb;
 }
 
+export async function syncCloudDb(force: boolean = false): Promise<DatabaseState> {
+  const now = Date.now();
+  if (!force && inMemoryDb && now - lastCloudSyncTime < SYNC_CACHE_TTL) {
+    return inMemoryDb;
+  }
+
+  try {
+    const res = await fetch(`https://api.github.com/gists/${CLOUD_GIST_ID}`, {
+      headers: {
+        Authorization: `token ${CLOUD_GIST_TOKEN}`,
+        'User-Agent': 'DarElAsal-App',
+        Accept: 'application/vnd.github.v3+json',
+      },
+      cache: 'no-store',
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data?.files?.['db.json']?.content) {
+        const remoteDb = JSON.parse(data.files['db.json'].content) as DatabaseState;
+        if (remoteDb && Array.isArray(remoteDb.products)) {
+          inMemoryDb = remoteDb;
+          lastCloudSyncTime = now;
+          try {
+            fs.writeFileSync(FALLBACK_TMP_FILE, JSON.stringify(remoteDb, null, 2), 'utf-8');
+          } catch {}
+          return inMemoryDb;
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('Cloud DB sync read fallback to local:', err);
+  }
+
+  return getDb();
+}
+
+export async function syncCloudDbPush(state: DatabaseState): Promise<void> {
+  inMemoryDb = state;
+  lastCloudSyncTime = Date.now();
+
+  try {
+    await fetch(`https://api.github.com/gists/${CLOUD_GIST_ID}`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `token ${CLOUD_GIST_TOKEN}`,
+        'User-Agent': 'DarElAsal-App',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        files: {
+          'db.json': {
+            content: JSON.stringify(state),
+          },
+        },
+      }),
+    });
+  } catch (err) {
+    console.warn('Cloud DB sync push error:', err);
+  }
+}
+
 export function saveDb(state: DatabaseState): void {
   ensureDataDirectory();
   inMemoryDb = state;
@@ -221,6 +288,22 @@ export function saveDb(state: DatabaseState): void {
       console.warn('Persistence warning: memory-only mode active in current execution context');
     }
   }
+
+  // Asynchronously sync to cloud Gist
+  syncCloudDbPush(state).catch(() => {});
+}
+
+export function resetDatabaseStatsAndOrders(): DatabaseState {
+  const db = getDb();
+  db.orders = [];
+  db.auditLogs = [];
+  if (db.courierProfiles) {
+    db.courierProfiles.forEach((c) => {
+      c.activeOrdersCount = 0;
+    });
+  }
+  saveDb(db);
+  return db;
 }
 
 // ---------------- PRODUCTS ----------------
@@ -471,6 +554,15 @@ export function getOrders(options?: {
 export function getOrderById(id: string): Order | null {
   const db = getDb();
   return db.orders.find((o) => o.id === id || o.orderNumber === id) || null;
+}
+
+export async function getOrderByIdAsync(id: string): Promise<Order | null> {
+  let order = getOrderById(id);
+  if (!order) {
+    await syncCloudDb(true);
+    order = getOrderById(id);
+  }
+  return order;
 }
 
 export function saveOrder(order: Order): Order {

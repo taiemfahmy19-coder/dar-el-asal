@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
-import { getOrders } from '@/lib/db';
+import { getOrders, syncCloudDb, syncCloudDbPush, getDb } from '@/lib/db';
 import { createOrderServerSide } from '@/lib/order-engine';
 import { OrderStatus } from '@/lib/types';
 
 export async function GET(req: NextRequest) {
   try {
+    await syncCloudDb();
     const currentUser = await getCurrentUser();
     if (!currentUser) {
       return NextResponse.json({ error: 'يجب تسجيل الدخول لعرض الطلبات' }, { status: 401 });
@@ -52,6 +53,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    await syncCloudDb();
     const body = await req.json();
     const currentUser = await getCurrentUser();
 
@@ -83,6 +85,9 @@ export async function POST(req: NextRequest) {
     if (!result.success || !result.order) {
       return NextResponse.json({ error: result.error || 'فشل إنشاء الطلب' }, { status: 400 });
     }
+
+    // Immediately push to cloud so PC admin can see this order in realtime
+    await syncCloudDbPush(getDb());
 
     // Sanitize order for customer response
     const { totalCost, estimatedProfit, ...safeOrder } = result.order;

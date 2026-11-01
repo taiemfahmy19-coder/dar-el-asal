@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
-import { getOrders } from '@/lib/db';
-import { autoAssignOrder } from '@/lib/db';
+import { getOrders, autoAssignOrder, syncCloudDb, syncCloudDbPush, getDb } from '@/lib/db';
 
 export async function POST(req: NextRequest) {
   try {
+    await syncCloudDb();
     const currentUser = await getCurrentUser();
     if (!currentUser || currentUser.role !== 'admin') {
       return NextResponse.json({ error: 'صلاحية التوزيع التلقائي للمدير فقط' }, { status: 403 });

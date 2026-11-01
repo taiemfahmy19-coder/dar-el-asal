@@ -16,6 +16,7 @@ import {
   ArrowLeft,
   Store,
   Layers,
+  RotateCcw,
 } from 'lucide-react';
 import { formatPrice, formatDate, ORDER_STATUS_MAP } from '@/lib/utils';
 import { Order, Product } from '@/lib/types';
@@ -27,6 +28,7 @@ export default function AdminOverviewPage() {
   const [loading, setLoading] = useState(true);
   const [autoAssigning, setAutoAssigning] = useState(false);
   const [autoAssignMessage, setAutoAssignMessage] = useState<string | null>(null);
+  const [resetting, setResetting] = useState(false);
 
   const fetchStats = () => {
     fetch('/api/admin/stats')
@@ -42,6 +44,31 @@ export default function AdminOverviewPage() {
   useEffect(() => {
     fetchStats();
   }, []);
+
+  const handleResetStats = async () => {
+    if (!confirm('هل أنت متأكد من تصفير كافة الأرباح والطلبات والإحصائيات والبدء من الصفر (0)؟')) {
+      return;
+    }
+    setResetting(true);
+    try {
+      const res = await fetch('/api/admin/stats', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reset' }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAutoAssignMessage(data.message || 'تم تصفير الأرباح والأرقام بنجاح');
+        fetchStats();
+      } else {
+        alert(data.error || 'فشل التصفير');
+      }
+    } catch {
+      alert('حدث خطأ في الاتصال بالخادم');
+    } finally {
+      setResetting(false);
+    }
+  };
 
   const handleTriggerAutoAssign = async () => {
     setAutoAssigning(true);
@@ -88,12 +115,23 @@ export default function AdminOverviewPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          {/* Reset Metrics / Profits Button */}
+          <button
+            onClick={handleResetStats}
+            disabled={resetting}
+            className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-rose-300 bg-rose-50 hover:bg-rose-100 text-rose-800 text-xs font-bold transition-all shadow-subtle disabled:opacity-50"
+            title="تصفير الأرباح والأعداد وكافة الطلبات للبدء من جديد"
+          >
+            <RotateCcw className="w-4 h-4 text-rose-600" />
+            <span>{resetting ? 'جارٍ التصفير...' : 'تصفير الأرباح والأرقام'}</span>
+          </button>
+
           {/* Auto Assign Action Button */}
           <button
             onClick={handleTriggerAutoAssign}
             disabled={autoAssigning}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-forest-900 text-gold-300 hover:text-white hover:bg-forest-800 text-xs font-bold transition-all shadow-subtle disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-forest-900 text-gold-300 hover:text-white hover:bg-forest-800 text-xs font-bold transition-all shadow-subtle disabled:opacity-50"
             title="توزيع الطلبات الجاهزة تلقائياً على المندوبين المتاحين"
           >
             <Zap className="w-4 h-4 text-gold-400" />
@@ -102,7 +140,7 @@ export default function AdminOverviewPage() {
 
           <button
             onClick={fetchStats}
-            className="p-2.5 rounded-xl bg-white border border-ivory-300 text-gray-700 hover:bg-ivory-100 shadow-sm"
+            className="p-2 sm:p-2.5 rounded-xl bg-white border border-ivory-300 text-gray-700 hover:bg-ivory-100 shadow-sm"
             title="تحديث البيانات"
           >
             <RefreshCw className="w-4 h-4" />

@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
-import { getDb } from '@/lib/db';
+import { getDb, syncCloudDb, syncCloudDbPush, resetDatabaseStatsAndOrders } from '@/lib/db';
 
 export async function GET() {
   try {
+    await syncCloudDb();
     const currentUser = await getCurrentUser();
     if (!currentUser || currentUser.role !== 'admin') {
       return NextResponse.json({ error: 'الصلاحية للمدير فقط' }, { status: 403 });
@@ -63,5 +64,28 @@ export async function GET() {
     });
   } catch (error) {
     return NextResponse.json({ error: 'فشل احتساب الإحصائيات' }, { status: 500 });
+  }
+}
+
+export async function POST(req: Request) {
+  try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser || currentUser.role !== 'admin') {
+      return NextResponse.json({ error: 'الصلاحية للمدير فقط' }, { status: 403 });
+    }
+
+    const body = await req.json().catch(() => ({}));
+    if (body.action === 'reset' || body.action === 'zero_all') {
+      const resetDb = resetDatabaseStatsAndOrders();
+      await syncCloudDbPush(resetDb);
+      return NextResponse.json({
+        success: true,
+        message: 'تم تصفير كافة الأرباح والإحصائيات والطلبات بنجاح وبدء الحساب من الصفر (0)',
+      });
+    }
+
+    return NextResponse.json({ error: 'إجراء غير معروف' }, { status: 400 });
+  } catch (error) {
+    return NextResponse.json({ error: 'فشل تصفير الإحصائيات' }, { status: 500 });
   }
 }

@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
-import { getOrderById } from '@/lib/db';
+import { getOrderByIdAsync, syncCloudDb } from '@/lib/db';
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const order = getOrderById(params.id);
+    let order = await getOrderByIdAsync(params.id);
+    if (!order) {
+      await syncCloudDb(true);
+      order = await getOrderByIdAsync(params.id);
+    }
     if (!order) {
       return NextResponse.json({ error: 'الطلب غير موجود' }, { status: 404 });
     }
