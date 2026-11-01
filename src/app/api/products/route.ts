@@ -93,6 +93,7 @@ export async function POST(req: NextRequest) {
       images: body.images && body.images.length > 0 ? body.images : [
         '/images/honey/prod-honey-plain.jpg'
       ],
+      videoUrl: body.videoUrl || undefined,
       isFeatured: Boolean(body.isFeatured),
       isNew: Boolean(body.isNew),
       isActive: body.isActive !== undefined ? Boolean(body.isActive) : true,

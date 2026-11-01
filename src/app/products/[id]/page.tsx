@@ -149,6 +149,22 @@ export default function ProductDetailPage() {
                   ))}
                 </div>
               )}
+
+              {/* Product Video Clip (if uploaded) */}
+              {product.videoUrl && (
+                <div className="mt-4 p-3.5 bg-[#fbf9f4] rounded-[16px] border border-[#c59b27]/30 shadow-sm space-y-2 text-right">
+                  <div className="flex items-center gap-2 text-xs font-bold text-[#143823]">
+                    <span className="text-base">🎬</span>
+                    <span>فيديو استعراض قوام وطزاجة المنتج:</span>
+                  </div>
+                  <video
+                    src={product.videoUrl}
+                    controls
+                    playsInline
+                    className="w-full rounded-[12px] max-h-64 bg-black object-contain shadow-inner"
+                  />
+                </div>
+              )}
             </div>
 
             {/* Product Meta & Actions Column */}

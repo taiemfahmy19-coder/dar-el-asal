@@ -37,6 +37,7 @@ export interface Product {
   status: SupplierProductStatus;
   stockQuantity: number;
   images: string[];
+  videoUrl?: string;
   isFeatured: boolean;
   isNew: boolean;
   isActive: boolean;

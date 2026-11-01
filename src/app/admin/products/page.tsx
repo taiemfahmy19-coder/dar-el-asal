@@ -2,7 +2,22 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Plus, Edit, Trash2, Search, Check, AlertCircle, ShoppingBag, Eye, EyeOff } from 'lucide-react';
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Search,
+  Check,
+  AlertCircle,
+  ShoppingBag,
+  Eye,
+  EyeOff,
+  UploadCloud,
+  Image as ImageIcon,
+  Video,
+  Film,
+  X,
+} from 'lucide-react';
 import { Product, Category, Supplier } from '@/lib/types';
 import { formatPrice, SUPPLIER_STATUS_MAP } from '@/lib/utils';
 import SupplierStatusBadge from '@/components/products/SupplierStatusBadge';
@@ -33,6 +48,9 @@ export default function AdminProductsPage() {
   const [shortDescription, setShortDescription] = useState('');
   const [ingredients, setIngredients] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [videoUrl, setVideoUrl] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
 
   const fetchProducts = () => {
     fetch('/api/products?admin=true')
@@ -53,6 +71,59 @@ export default function AdminProductsPage() {
     fetchProducts();
   }, []);
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('يرجى اختيار ملف صورة صالح (JPG, PNG, WebP)');
+      return;
+    }
+
+    setUploadingImage(true);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setImageUrl(event.target.result as string);
+      }
+      setUploadingImage(false);
+    };
+    reader.onerror = () => {
+      alert('تعذر قراءة الصورة من الجهاز');
+      setUploadingImage(false);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('video/')) {
+      alert('يرجى اختيار ملف فيديو صالح (MP4, WebM, MOV)');
+      return;
+    }
+
+    if (file.size > 25 * 1024 * 1024) {
+      alert('حجم الفيديو يتجاوز 25 ميجابايت، يُفضل اختيار مقطع فيديو أقصر أو بحجم أصغر');
+      return;
+    }
+
+    setUploadingVideo(true);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setVideoUrl(event.target.result as string);
+      }
+      setUploadingVideo(false);
+    };
+    reader.onerror = () => {
+      alert('تعذر قراءة الفيديو من الجهاز');
+      setUploadingVideo(false);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const openAddModal = () => {
     setEditingProduct(null);
     setName('');
@@ -69,6 +140,7 @@ export default function AdminProductsPage() {
     setShortDescription('');
     setIngredients('');
     setImageUrl('/images/honey/prod-honey-plain.jpg');
+    setVideoUrl('');
     setModalOpen(true);
   };
 
@@ -88,6 +160,7 @@ export default function AdminProductsPage() {
     setShortDescription(p.shortDescription);
     setIngredients(p.ingredients || '');
     setImageUrl(p.images[0] || '');
+    setVideoUrl(p.videoUrl || '');
     setModalOpen(true);
   };
 
@@ -113,6 +186,7 @@ export default function AdminProductsPage() {
       shortDescription,
       ingredients,
       images: [imageUrl || '/images/honey/prod-honey-plain.jpg'],
+      videoUrl: videoUrl || undefined,
     };
 
     try {
@@ -382,15 +456,126 @@ export default function AdminProductsPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="block font-bold text-forest-950 mb-1">رابط صورة المنتج (URL)</label>
-                <input
-                  type="url"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  className="w-full p-2.5 rounded-xl bg-ivory-50 border border-ivory-300"
-                  dir="ltr"
-                />
+              {/* Device Media Uploaders: Images & Videos */}
+              <div className="space-y-4 p-4 rounded-2xl bg-ivory-50/80 border border-ivory-200">
+                <div className="flex items-center justify-between border-b border-ivory-200 pb-2">
+                  <span className="font-bold text-forest-950 flex items-center gap-1.5">
+                    <UploadCloud className="w-4 h-4 text-forest-800" />
+                    <span>وسائط المنتج من جهازك (موبايل أو كمبيوتر)</span>
+                  </span>
+                  <span className="text-[10px] text-gray-400">مباشرة من الكاميرا أو المعرض</span>
+                </div>
+
+                {/* Photo Upload from Device */}
+                <div>
+                  <label className="block font-bold text-forest-950 mb-1.5 flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <ImageIcon className="w-3.5 h-3.5 text-forest-800" />
+                      <span>صورة المنتج الرئيسية *</span>
+                    </span>
+                    {uploadingImage && <span className="text-[11px] text-amber-700 animate-pulse font-bold">جارٍ معالجة الصورة...</span>}
+                  </label>
+
+                  {imageUrl ? (
+                    <div className="flex items-center gap-3 p-2.5 bg-white rounded-xl border border-ivory-200 shadow-sm">
+                      <div className="relative w-16 h-16 rounded-lg overflow-hidden border border-ivory-200 shrink-0 bg-ivory-50">
+                        <Image src={imageUrl} alt="" fill className="object-cover" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-forest-950 text-xs truncate">تم اختيار الصورة بنجاح ✓</p>
+                        <p className="text-[11px] text-emerald-700">جاهزة للعرض والحفظ في المتجر</p>
+                      </div>
+                      <label className="cursor-pointer px-3 py-1.5 rounded-lg bg-ivory-100 hover:bg-ivory-200 text-forest-900 font-bold text-[11px] transition-colors">
+                        <span>تغيير</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setImageUrl('')}
+                        className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50"
+                        title="حذف الصورة"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="flex flex-col items-center justify-center border-2 border-dashed border-ivory-300 hover:border-forest-700 rounded-xl p-4 cursor-pointer bg-white transition-all text-center group">
+                      <UploadCloud className="w-6 h-6 text-gray-400 group-hover:text-forest-800 mb-1 transition-colors" />
+                      <span className="font-bold text-forest-950 text-xs">
+                        اضغط لرفع صورة من جهازك (كمبيوتر أو كاميرا/استوديو الموبايل)
+                      </span>
+                      <span className="text-[10px] text-gray-400 mt-0.5">JPG, PNG, WebP</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
+                </div>
+
+                {/* Video Upload from Device */}
+                <div>
+                  <label className="block font-bold text-forest-950 mb-1.5 flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <Film className="w-3.5 h-3.5 text-forest-800" />
+                      <span>فيديو توضيحي للمنتج (اختياري)</span>
+                    </span>
+                    {uploadingVideo && <span className="text-[11px] text-amber-700 animate-pulse font-bold">جارٍ معالجة الفيديو...</span>}
+                  </label>
+
+                  {videoUrl ? (
+                    <div className="space-y-2 p-2.5 bg-white rounded-xl border border-ivory-200 shadow-sm">
+                      <video
+                        src={videoUrl}
+                        controls
+                        className="w-full max-h-48 rounded-lg bg-black object-contain"
+                      />
+                      <div className="flex items-center justify-between pt-1">
+                        <span className="text-[11px] text-emerald-700 font-bold">تم تحميل مقطع الفيديو بنجاح ✓</span>
+                        <div className="flex items-center gap-2">
+                          <label className="cursor-pointer px-3 py-1 rounded-lg bg-ivory-100 hover:bg-ivory-200 text-forest-900 font-bold text-[11px]">
+                            <span>تغيير الفيديو</span>
+                            <input
+                              type="file"
+                              accept="video/*"
+                              onChange={handleVideoUpload}
+                              className="hidden"
+                            />
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => setVideoUrl('')}
+                            className="p-1 rounded-lg text-rose-600 hover:bg-rose-50"
+                            title="إزالة الفيديو"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <label className="flex flex-col items-center justify-center border-2 border-dashed border-ivory-300 hover:border-forest-700 rounded-xl p-3.5 cursor-pointer bg-white transition-all text-center group">
+                      <Video className="w-5 h-5 text-gray-400 group-hover:text-forest-800 mb-1 transition-colors" />
+                      <span className="font-bold text-forest-950 text-xs">
+                        اضغط لرفع فيديو للمنتج من جهازك (مقطع سكب العسل، الفحص المخبري، التغليف)
+                      </span>
+                      <span className="text-[10px] text-gray-400 mt-0.5">MP4, WebM, MOV حتى 25 ميجابايت</span>
+                      <input
+                        type="file"
+                        accept="video/*"
+                        onChange={handleVideoUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
+                </div>
               </div>
 
               <div>
