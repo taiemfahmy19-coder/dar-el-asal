@@ -77,7 +77,7 @@ export default function SourcingTransparency() {
               </div>
             </div>
 
-            <div className="absolute -bottom-4 -right-2 sm:right-6 bg-white/95 backdrop-blur-md p-4 rounded-[14px] shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-[#d2d2d7]/50 text-right max-w-xs">
+            <div className="mt-3 sm:mt-0 sm:absolute sm:-bottom-4 sm:right-6 bg-white/95 backdrop-blur-md p-3.5 sm:p-4 rounded-[14px] shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-[#d2d2d7]/50 text-right max-w-full sm:max-w-xs">
               <p className="text-xs font-bold text-[#1d1d1f] mb-1">حموضة مثبتة مخبرياً 0.38%</p>
               <p className="text-[11px] text-[#515154] leading-relaxed">
                 زيت زيتون واحة سيوة البكر الممتاز، معصور هيدروليكياً على البارد في نفس يوم الجني.

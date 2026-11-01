@@ -221,7 +221,7 @@ export default function ProductDetailPage() {
 
               {/* Quantity & CTA */}
               <div className="space-y-4 pt-4 border-t border-[#d2d2d7]/40">
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4">
                   <div className="flex items-center border border-[#d2d2d7]/80 rounded-[980px] bg-[#f5f5f7] p-1">
                     <button
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -243,7 +243,7 @@ export default function ProductDetailPage() {
                   <button
                     onClick={handleAddToCart}
                     disabled={product.status === 'UNAVAILABLE'}
-                    className={`flex-1 inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-[980px] font-semibold text-sm transition-all shadow-sm active:scale-95 ${
+                    className={`w-full sm:flex-1 inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-[980px] font-semibold text-sm transition-all shadow-sm active:scale-95 ${
                       product.status === 'UNAVAILABLE'
                         ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                         : addedAnimation
@@ -265,7 +265,7 @@ export default function ProductDetailPage() {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 text-[11px] text-[#515154]">
+                <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 gap-2.5 sm:gap-3 text-[11px] text-[#515154]">
                   <div className="flex items-center gap-2 bg-[#f5f5f7] p-2.5 rounded-[12px] border border-[#d2d2d7]/50">
                     <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span>فحص المعامل المركزية معتمد</span>
@@ -321,7 +321,7 @@ export default function ProductDetailPage() {
             <h3 className="text-xl font-semibold text-[#1d1d1f] mb-6 border-r-4 border-[#0071e3] pr-3 tracking-tight">
               منتجات مشابهة قد تناسبك
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-6">
               {similarProducts.map((p) => (
                 <ProductCard key={p.id} product={p} />
               ))}

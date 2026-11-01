@@ -87,17 +87,17 @@ export default function SmartPackageWizard() {
         <div className="card max-w-4xl mx-auto mb-8 text-right border border-[#d2d2d7]/50">
           
           {/* Step 1: Budget */}
-          <div className="mb-8">
-            <label className="block text-sm font-semibold text-[#1d1d1f] mb-3">
+          <div className="mb-6 sm:mb-8">
+            <label className="block text-xs sm:text-sm font-semibold text-[#1d1d1f] mb-3">
               1. حدد ميزانيتك التقريبية:
             </label>
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-2.5">
               {BUDGET_OPTIONS.map((opt) => (
                 <button
                   key={opt}
                   type="button"
                   onClick={() => setBudget(opt)}
-                  className={`py-3 px-4 rounded-[980px] text-xs sm:text-sm font-medium transition-all ${
+                  className={`py-2.5 sm:py-3 px-3 sm:px-4 rounded-[980px] text-xs sm:text-sm font-medium transition-all ${
                     budget === opt
                       ? 'bg-[#143823] text-[#f5ebd2] border border-[#c59b27]/60 shadow-sm scale-[1.02]'
                       : 'bg-[#f5f5f7] text-[#1d1d1f] border border-[#d2d2d7]/60 hover:bg-gray-200/60'
@@ -111,16 +111,16 @@ export default function SmartPackageWizard() {
 
           {/* Step 2: Theme / Need */}
           <div>
-            <label className="block text-sm font-semibold text-[#1d1d1f] mb-3">
+            <label className="block text-xs sm:text-sm font-semibold text-[#1d1d1f] mb-3">
               2. ما الغرض الأساسي من الباقة؟
             </label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
               {THEME_OPTIONS.map((item) => (
                 <button
                   key={item.id}
                   type="button"
                   onClick={() => setTheme(item.id)}
-                  className={`p-4 rounded-[14px] text-right transition-all border flex items-center gap-2.5 ${
+                  className={`p-3 sm:p-4 rounded-[14px] text-right transition-all border flex items-center gap-2.5 ${
                     theme === item.id
                       ? 'bg-[#f5ebd2] border-[#c59b27] text-[#143823] font-semibold shadow-sm ring-1 ring-[#c59b27]'
                       : 'bg-[#f5f5f7] border-[#d2d2d7]/60 text-[#1d1d1f] hover:bg-gray-200/60'

@@ -39,11 +39,11 @@ export default function HomeProductsSection({ products }: Props) {
         </div>
 
         {/* Clean Filter Tabs */}
-        <div className="flex items-center gap-1.5 sm:gap-2 bg-white/90 backdrop-blur-md p-1 sm:p-1.5 rounded-full border border-[#d2d2d7]/70 shadow-sm self-stretch md:self-auto overflow-x-auto">
+        <div className="flex items-center gap-1 sm:gap-2 bg-white/90 backdrop-blur-md p-1 sm:p-1.5 rounded-full border border-[#d2d2d7]/70 shadow-sm self-stretch md:self-auto overflow-x-auto no-scrollbar">
           <button
             type="button"
             onClick={() => setActiveTab('all')}
-            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap ${
+            className={`px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-[11px] sm:text-xs font-bold transition-all whitespace-nowrap ${
               activeTab === 'all'
                 ? 'bg-[#143823] text-[#f5ebd2] shadow-sm'
                 : 'text-[#515154] hover:text-[#1d1d1f]'
@@ -54,7 +54,7 @@ export default function HomeProductsSection({ products }: Props) {
           <button
             type="button"
             onClick={() => setActiveTab('cat-honey')}
-            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap ${
+            className={`px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-[11px] sm:text-xs font-bold transition-all whitespace-nowrap ${
               activeTab === 'cat-honey'
                 ? 'bg-[#143823] text-[#f5ebd2] shadow-sm'
                 : 'text-[#515154] hover:text-[#1d1d1f]'
@@ -65,7 +65,7 @@ export default function HomeProductsSection({ products }: Props) {
           <button
             type="button"
             onClick={() => setActiveTab('cat-olive-oil')}
-            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap ${
+            className={`px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-[11px] sm:text-xs font-bold transition-all whitespace-nowrap ${
               activeTab === 'cat-olive-oil'
                 ? 'bg-[#143823] text-[#f5ebd2] shadow-sm'
                 : 'text-[#515154] hover:text-[#1d1d1f]'
@@ -77,7 +77,7 @@ export default function HomeProductsSection({ products }: Props) {
       </div>
 
       {/* Product Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4 md:gap-6">
         {filteredProducts.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}

@@ -236,17 +236,17 @@ function ProductsContent() {
           {/* Product Grid */}
           <main className="md:col-span-3">
             {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
                 {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <div key={i} className="card h-80 animate-pulse border border-[#d2d2d7]/50 p-4 !rounded-[18px]">
-                    <div className="bg-gray-200 h-44 rounded-[14px] mb-4"></div>
+                  <div key={i} className="card h-72 sm:h-80 animate-pulse border border-[#d2d2d7]/50 p-3 sm:p-4 !rounded-[18px]">
+                    <div className="bg-gray-200 h-36 sm:h-44 rounded-[14px] mb-3"></div>
                     <div className="bg-gray-200 h-4 rounded w-3/4 mb-2"></div>
                     <div className="bg-gray-200 h-3 rounded w-1/2"></div>
                   </div>
                 ))}
               </div>
             ) : sortedProducts.length === 0 ? (
-              <div className="card p-12 text-center border border-[#d2d2d7]/50 space-y-4 !rounded-[18px]">
+              <div className="card p-8 sm:p-12 text-center border border-[#d2d2d7]/50 space-y-4 !rounded-[18px]">
                 <div className="w-16 h-16 rounded-[14px] bg-gray-100 text-gray-400 mx-auto flex items-center justify-center">
                   <PackageX className="w-8 h-8" />
                 </div>
@@ -267,7 +267,7 @@ function ProductsContent() {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4 md:gap-6">
                 {sortedProducts.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}

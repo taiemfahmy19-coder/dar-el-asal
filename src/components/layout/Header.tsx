@@ -52,12 +52,12 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-40 bg-white/85 backdrop-blur-xl border-b border-[#d2d2d7]/60 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20 gap-4">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 sm:h-20 gap-2 sm:gap-4">
           
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 sm:gap-3 shrink-0 group">
-            <div className="relative h-9 sm:h-12 w-36 xs:w-44 sm:w-56 overflow-hidden">
+          <Link href="/" className="flex items-center gap-1.5 sm:gap-3 shrink-0 group">
+            <div className="relative h-8 sm:h-11 md:h-12 w-28 sm:w-44 md:w-56 overflow-hidden">
               <img
                 src="/images/dar-logo-full.jpg"
                 alt="دار العسل والزيتون | DAR EL ASAL & OLIVE"
@@ -110,17 +110,17 @@ export default function Header() {
           </form>
 
           {/* Actions & User */}
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-1.5 sm:gap-3">
             
             {/* Wishlist */}
             <Link
               href="/favorites"
-              className="relative p-2.5 text-[#1d1d1f] hover:text-[#c59b27] transition-colors rounded-full hover:bg-gray-100/70"
+              className="relative p-1.5 sm:p-2.5 text-[#1d1d1f] hover:text-[#c59b27] transition-colors rounded-full hover:bg-gray-100/70"
               title="المفضلة"
             >
-              <Heart className="w-5 h-5" />
+              <Heart className="w-4 h-4 sm:w-5 sm:h-5" />
               {favorites.length > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 bg-rose-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
+                <span className="absolute -top-0.5 -right-0.5 bg-rose-500 text-white text-[9px] sm:text-[10px] w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full flex items-center justify-center font-bold">
                   {favorites.length}
                 </span>
               )}
@@ -129,15 +129,15 @@ export default function Header() {
             {/* Cart */}
             <Link
               href="/cart"
-              className="relative p-2.5 bg-[#f5f5f7] text-[#1d1d1f] hover:bg-gray-200/70 transition-colors rounded-full border border-[#d2d2d7]/70 flex items-center gap-2"
+              className="relative p-1.5 sm:p-2.5 bg-[#f5f5f7] text-[#1d1d1f] hover:bg-gray-200/70 transition-colors rounded-full border border-[#d2d2d7]/70 flex items-center gap-1 sm:gap-2"
               title="سلة المشتريات"
             >
-              <ShoppingBag className="w-5 h-5 text-[#1d1d1f]" />
-              <span className="hidden sm:inline text-xs font-medium text-[#1d1d1f]">
+              <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5 text-[#1d1d1f]" />
+              <span className="hidden md:inline text-xs font-medium text-[#1d1d1f]">
                 السلة
               </span>
               {totalItems > 0 && (
-                <span className="bg-[#143823] text-[#f5ebd2] text-[11px] w-5 h-5 rounded-full flex items-center justify-center font-bold shadow-sm border border-[#c59b27]/60">
+                <span className="bg-[#143823] text-[#f5ebd2] text-[10px] sm:text-[11px] w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center font-bold shadow-sm border border-[#c59b27]/60">
                   {totalItems}
                 </span>
               )}
@@ -148,12 +148,12 @@ export default function Header() {
               <div className="relative" ref={userMenuRef}>
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="flex items-center gap-2 py-1.5 px-3 bg-[#f5f5f7] border border-[#d2d2d7]/70 rounded-[980px] hover:bg-gray-200/70 transition-colors text-right"
+                  className="flex items-center gap-1 sm:gap-2 p-1 sm:py-1.5 sm:px-3 bg-[#f5f5f7] border border-[#d2d2d7]/70 rounded-[980px] hover:bg-gray-200/70 transition-colors text-right"
                 >
-                  <div className="w-7 h-7 rounded-full bg-[#1d1d1f] text-white flex items-center justify-center text-xs font-bold">
+                  <div className="w-7 h-7 rounded-full bg-[#1d1d1f] text-white flex items-center justify-center text-xs font-bold shrink-0">
                     {user.name.charAt(0)}
                   </div>
-                  <div className="hidden sm:flex flex-col text-right">
+                  <div className="hidden md:flex flex-col text-right">
                     <span className="text-xs font-semibold text-[#1d1d1f] truncate max-w-[100px]">
                       {user.name.split(' ')[0]}
                     </span>
@@ -248,19 +248,21 @@ export default function Header() {
             ) : (
               <Link
                 href="/auth/login"
-                className="btn inline-flex items-center gap-2 px-5 py-2.5 rounded-[980px] bg-[#143823] text-[#f5ebd2] text-xs font-semibold hover:bg-[#1a4a2f] border border-[#c59b27]/60 hover:scale-[1.02] transition-all shadow-sm"
+                className="btn inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-[980px] bg-[#143823] text-[#f5ebd2] text-xs font-semibold hover:bg-[#1a4a2f] border border-[#c59b27]/60 hover:scale-[1.02] transition-all shadow-sm"
               >
                 <UserIcon className="w-3.5 h-3.5 text-[#c59b27]" />
-                <span>تسجيل الدخول</span>
+                <span className="hidden sm:inline">تسجيل الدخول</span>
+                <span className="sm:hidden text-[11px]">دخول</span>
               </Link>
             )}
 
             {/* Mobile Menu Toggle */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 text-[#1d1d1f] hover:bg-gray-100 rounded-[10px]"
+              className="lg:hidden p-1.5 sm:p-2 text-[#1d1d1f] hover:bg-gray-100 rounded-[10px]"
+              aria-label="القائمة"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6" /> : <Menu className="w-5 h-5 sm:w-6 sm:h-6" />}
             </button>
 
           </div>
