@@ -156,7 +156,32 @@ export function getDb(): DatabaseState {
 
   ensureDataDirectory();
 
-  // 1. Try reading from primary file
+  // 1. Check if serverless /tmp fallback has newer data
+  if (fs.existsSync(FALLBACK_TMP_FILE)) {
+    try {
+      const tmpStats = fs.statSync(FALLBACK_TMP_FILE);
+      let isTmpPreferred = true;
+
+      if (fs.existsSync(DB_FILE)) {
+        try {
+          const dbStats = fs.statSync(DB_FILE);
+          if (dbStats.mtimeMs > tmpStats.mtimeMs) {
+            isTmpPreferred = false;
+          }
+        } catch {}
+      }
+
+      if (isTmpPreferred) {
+        const tmpData = fs.readFileSync(FALLBACK_TMP_FILE, 'utf-8');
+        inMemoryDb = JSON.parse(tmpData);
+        return inMemoryDb!;
+      }
+    } catch (err) {
+      console.warn('Failed reading fallback /tmp store:', err);
+    }
+  }
+
+  // 2. Try reading from primary file
   if (fs.existsSync(DB_FILE)) {
     try {
       const fileData = fs.readFileSync(DB_FILE, 'utf-8');
@@ -166,15 +191,6 @@ export function getDb(): DatabaseState {
       console.error('Failed reading primary store, checking fallback:', err);
     }
   }
-
-  // 2. Try reading from serverless /tmp fallback
-  try {
-    if (fs.existsSync(FALLBACK_TMP_FILE)) {
-      const tmpData = fs.readFileSync(FALLBACK_TMP_FILE, 'utf-8');
-      inMemoryDb = JSON.parse(tmpData);
-      return inMemoryDb!;
-    }
-  } catch {}
 
   const initialState = getInitialDatabaseState();
   inMemoryDb = initialState;
@@ -186,17 +202,22 @@ export function saveDb(state: DatabaseState): void {
   ensureDataDirectory();
   inMemoryDb = state;
 
+  let savedToPrimary = false;
   // Try saving to primary file
   try {
     const tempFile = `${DB_FILE}.tmp.${Date.now()}`;
     fs.writeFileSync(tempFile, JSON.stringify(state, null, 2), 'utf-8');
     fs.renameSync(tempFile, DB_FILE);
-    return;
+    savedToPrimary = true;
   } catch (err) {
-    // If read-only filesystem (e.g. Vercel serverless), write to /tmp
-    try {
-      fs.writeFileSync(FALLBACK_TMP_FILE, JSON.stringify(state, null, 2), 'utf-8');
-    } catch (tmpErr) {
+    // Read-only filesystem in serverless environments (like Vercel)
+  }
+
+  // Always keep /tmp in sync as well for serverless continuity
+  try {
+    fs.writeFileSync(FALLBACK_TMP_FILE, JSON.stringify(state, null, 2), 'utf-8');
+  } catch (tmpErr) {
+    if (!savedToPrimary) {
       console.warn('Persistence warning: memory-only mode active in current execution context');
     }
   }

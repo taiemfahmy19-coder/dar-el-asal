@@ -1,5 +1,5 @@
 -- ========================================================================
--- BAZAAR E-COMMERCE PLATFORM — SUPABASE POSTGRESQL PRODUCTION SCHEMA
+-- DAR EL ASAL & OLIVE — SUPABASE POSTGRESQL PRODUCTION SCHEMA
 -- Full relational schema with RLS, triggers, indexes, and role-based policies
 -- ========================================================================
 
