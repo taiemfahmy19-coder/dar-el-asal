@@ -44,7 +44,11 @@ export default function ProductCard({ product }: Props) {
       
       {/* Top Media - 100% Clean Image Viewport */}
       <div className="relative aspect-[16/11] w-full bg-[#fbf9f4] rounded-[12px] sm:rounded-[14px] overflow-hidden mb-2 sm:mb-3 p-1">
-        <Link href={`/products/${product.id}`} className="block w-full h-full relative">
+        <Link
+          href={`/products/${product.id}`}
+          aria-label={`عرض تفاصيل ${product.name}`}
+          className="block w-full h-full relative"
+        >
           <Image
             src={product.images[0] || '/images/honey/prod-honey-plain.jpg'}
             alt={product.name}
@@ -56,8 +60,10 @@ export default function ProductCard({ product }: Props) {
 
         {/* Minimal Unobtrusive Wishlist Button */}
         <button
+          type="button"
           onClick={handleToggleWishlist}
-          aria-label="إضافة للمفضلة"
+          aria-label={favorited ? `إزالة ${product.name} من المفضلة` : `إضافة ${product.name} إلى المفضلة`}
+          aria-pressed={favorited}
           className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-white/85 backdrop-blur-md shadow-sm border border-[#d2d2d7]/50 flex items-center justify-center text-gray-500 hover:text-rose-500 hover:scale-105 active:scale-95 transition-all z-10"
         >
           <Heart
@@ -137,14 +143,16 @@ export default function ProductCard({ product }: Props) {
           <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
             <Link
               href={`/products/${product.id}`}
+              aria-label={`عرض تفاصيل ${product.name}`}
               className="inline-flex items-center justify-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-[980px] text-[10px] sm:text-xs font-semibold bg-[#c59b27] text-white hover:bg-[#b0881e] active:scale-95 transition-all shadow-sm whitespace-nowrap"
             >
               التفاصيل
             </Link>
             <button
+              type="button"
               onClick={handleAddToCart}
               disabled={product.status === 'UNAVAILABLE'}
-              aria-label="إضافة للسلة"
+              aria-label={product.status === 'UNAVAILABLE' ? `${product.name} غير متوفر حاليًا` : `إضافة ${product.name} إلى السلة`}
               className={`p-1 sm:p-1.5 md:p-2 rounded-full border transition-all shrink-0 ${
                 product.status === 'UNAVAILABLE'
                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200'

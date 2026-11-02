@@ -183,7 +183,43 @@ export const EGYPTIAN_GOVERNORATES = [
   { name: 'مطروح', fee: 100 },
 ];
 
+/**
+ * النطاق الجغرافي الفعلي المعتمد للتدشين.
+ * أي محافظة غير موجودة هنا لا يمكن اختيارها في الدفع ولا إنشاء طلب لها.
+ */
+export const ACTIVE_GOVERNORATES = EGYPTIAN_GOVERNORATES.filter(
+  (governorate) => governorate.name === 'الإسكندرية'
+);
+
+export const PLANNED_GOVERNORATES = EGYPTIAN_GOVERNORATES.filter(
+  (governorate) => governorate.name !== 'الإسكندرية'
+);
+
+export function isGovernorateSupported(governorate: string): boolean {
+  return ACTIVE_GOVERNORATES.some((active) => active.name === governorate);
+}
+
 export function getDeliveryFee(governorate: string): number {
-  const found = EGYPTIAN_GOVERNORATES.find((g) => g.name === governorate);
-  return found ? found.fee : 50;
+  const found = ACTIVE_GOVERNORATES.find((active) => active.name === governorate);
+  return found ? found.fee : 0;
+}
+
+/**
+ * توحيد معرفات التصنيفات بين الروابط القديمة والبيانات الحالية.
+ * يدعم المعرّف (cat-olive-oil) والاسم اللطيف (olive-oil) في نفس الرابط.
+ */
+export function normalizeCategoryId(value: string | null | undefined): string {
+  if (!value) return '';
+
+  const normalized = value.trim();
+  const aliases: Record<string, string> = {
+    'cat-honey': 'cat-honey',
+    'natural-honey': 'cat-honey',
+    honey: 'cat-honey',
+    'cat-olive-oil': 'cat-olive-oil',
+    'olive-oil': 'cat-olive-oil',
+    olive: 'cat-olive-oil',
+  };
+
+  return aliases[normalized] || normalized;
 }

@@ -1,30 +1,36 @@
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Search, Filter, SlidersHorizontal, PackageX } from 'lucide-react';
 import ProductCard from '@/components/products/ProductCard';
 import { Product } from '@/lib/types';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, normalizeCategoryId } from '@/lib/utils';
 
 function ProductsContent() {
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
-  
-  const initialCategory = searchParams.get('categoryId') || '';
-  const initialSearch = searchParams.get('search') || '';
+
+  const categoryParam = normalizeCategoryId(searchParams.get('categoryId'));
+  const searchParam = searchParams.get('search') || '';
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Filter States
-  const [search, setSearch] = useState(initialSearch);
-  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
+  const [search, setSearch] = useState(searchParam);
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [sortBy, setSortBy] = useState<string>('newest');
   const [maxPrice, setMaxPrice] = useState<number>(2500);
 
   // Mobile filters toggle
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+
+  // Keep the search box in sync with links such as /products?search=...
+  useEffect(() => {
+    setSearch(searchParam);
+  }, [searchParam]);
 
   useEffect(() => {
     fetch('/api/products')
@@ -34,6 +40,46 @@ function ProductsContent() {
       })
       .finally(() => setLoading(false));
   }, []);
+
+  /**
+   * The URL is the single source of truth for the active category.
+   * This prevents the previous bug where clicking a category link changed
+   * the URL but kept the old category filter state on screen.
+   */
+  const updateCategory = (categoryId: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (categoryId) {
+      params.set('categoryId', categoryId);
+    } else {
+      params.delete('categoryId');
+    }
+
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  };
+
+  const updateSearch = (value: string) => {
+    setSearch(value);
+
+    const params = new URLSearchParams(searchParams.toString());
+    if (value.trim()) {
+      params.set('search', value);
+    } else {
+      params.delete('search');
+    }
+
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  };
+
+  const resetFilters = () => {
+    setSelectedStatus('');
+    setMaxPrice(2500);
+    setSearch('');
+    router.replace(pathname, { scroll: false });
+  };
+
+  const selectedCategory = categoryParam;
 
   const filteredProducts = products.filter((p) => {
     if (selectedCategory && p.categoryId !== selectedCategory) return false;
@@ -77,11 +123,12 @@ function ProductsContent() {
             <input
               type="text"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => updateSearch(e.target.value)}
               placeholder="ابحث بالاسم أو المصدر (مثل: سيوة، سدر، برتقال)..."
+              aria-label="البحث في المنتجات"
               className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm bg-[#f5f5f7] border border-[#d2d2d7]/70 rounded-[980px] focus:outline-none focus:border-[#c59b27] focus:ring-4 focus:ring-amber-500/15 text-[#1d1d1f]"
             />
-            <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" aria-hidden="true" />
           </div>
 
           <div className="flex items-center gap-3">
@@ -90,6 +137,7 @@ function ProductsContent() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
+                aria-label="ترتيب المنتجات"
                 className="bg-[#f5f5f7] border border-[#d2d2d7]/70 rounded-[980px] px-4 py-2 text-xs font-medium text-[#1d1d1f] focus:outline-none focus:border-[#c59b27]"
               >
                 <option value="newest">الأحدث وصولاً</option>
@@ -100,10 +148,13 @@ function ProductsContent() {
             </div>
 
             <button
+              type="button"
               onClick={() => setMobileFilterOpen(!mobileFilterOpen)}
+              aria-expanded={mobileFilterOpen}
+              aria-controls="product-filters"
               className="md:hidden flex items-center gap-1.5 px-4 py-2 bg-[#f5f5f7] rounded-[980px] text-xs font-medium text-[#1d1d1f] border border-[#d2d2d7]/70"
             >
-              <SlidersHorizontal className="w-4 h-4" />
+              <SlidersHorizontal className="w-4 h-4" aria-hidden="true" />
               <span>الفلاتر</span>
             </button>
           </div>
@@ -115,23 +166,21 @@ function ProductsContent() {
           
           {/* Sidebar Filters */}
           <aside
+            id="product-filters"
+            aria-label="تصفية المنتجات"
             className={`space-y-6 md:block ${
               mobileFilterOpen ? 'block' : 'hidden'
             } card p-6 border border-[#d2d2d7]/50 h-fit !rounded-[18px]`}
           >
             <div className="flex items-center justify-between pb-3 border-b border-[#d2d2d7]/40">
               <h3 className="font-semibold text-sm text-[#1d1d1f] flex items-center gap-2">
-                <Filter className="w-4 h-4 text-[#c59b27]" />
+                <Filter className="w-4 h-4 text-[#c59b27]" aria-hidden="true" />
                 تصفية المنتجات
               </h3>
               {(selectedCategory || selectedStatus || search || maxPrice < 2500) && (
                 <button
-                  onClick={() => {
-                    setSelectedCategory('');
-                    setSelectedStatus('');
-                    setSearch('');
-                    setMaxPrice(2500);
-                  }}
+                  type="button"
+                  onClick={resetFilters}
                   className="text-[11px] text-[#c59b27] font-semibold hover:underline"
                 >
                   إعادة ضبط
@@ -140,13 +189,14 @@ function ProductsContent() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#1d1d1f] mb-2">
+              <span className="block text-xs font-semibold text-[#1d1d1f] mb-2">
                 القسم:
-              </label>
+              </span>
               <div className="space-y-1.5 text-xs">
                 <button
                   type="button"
-                  onClick={() => setSelectedCategory('')}
+                  onClick={() => updateCategory('')}
+                  aria-pressed={selectedCategory === ''}
                   className={`w-full text-right py-2 px-3 rounded-[980px] font-medium transition-all ${
                     selectedCategory === ''
                       ? 'bg-[#143823] text-[#f5ebd2] border border-[#c59b27]/60'
@@ -157,7 +207,8 @@ function ProductsContent() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setSelectedCategory('cat-honey')}
+                  onClick={() => updateCategory('cat-honey')}
+                  aria-pressed={selectedCategory === 'cat-honey'}
                   className={`w-full text-right py-2 px-3 rounded-[980px] font-medium transition-all ${
                     selectedCategory === 'cat-honey'
                       ? 'bg-[#143823] text-[#f5ebd2] border border-[#c59b27]/60'
@@ -168,7 +219,8 @@ function ProductsContent() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setSelectedCategory('cat-olive-oil')}
+                  onClick={() => updateCategory('cat-olive-oil')}
+                  aria-pressed={selectedCategory === 'cat-olive-oil'}
                   className={`w-full text-right py-2 px-3 rounded-[980px] font-medium transition-all ${
                     selectedCategory === 'cat-olive-oil'
                       ? 'bg-[#143823] text-[#f5ebd2] border border-[#c59b27]/60'
@@ -181,13 +233,14 @@ function ProductsContent() {
             </div>
 
             <div className="pt-4 border-t border-[#d2d2d7]/40">
-              <label className="block text-xs font-semibold text-[#1d1d1f] mb-2">
+              <span className="block text-xs font-semibold text-[#1d1d1f] mb-2">
                 حالة التوفر لدى المورد:
-              </label>
+              </span>
               <div className="space-y-1.5 text-xs">
                 <button
                   type="button"
                   onClick={() => setSelectedStatus('')}
+                  aria-pressed={selectedStatus === ''}
                   className={`w-full text-right py-2 px-3 rounded-[980px] font-medium ${
                     selectedStatus === '' ? 'bg-[#143823] text-[#f5ebd2] border border-[#c59b27]/60' : 'text-[#515154] hover:bg-gray-100'
                   }`}
@@ -197,6 +250,7 @@ function ProductsContent() {
                 <button
                   type="button"
                   onClick={() => setSelectedStatus('AVAILABLE')}
+                  aria-pressed={selectedStatus === 'AVAILABLE'}
                   className={`w-full text-right py-2 px-3 rounded-[980px] font-medium ${
                     selectedStatus === 'AVAILABLE' ? 'bg-[#143823] text-[#f5ebd2] border border-[#c59b27]/60' : 'text-[#515154] hover:bg-gray-100'
                   }`}
@@ -206,6 +260,7 @@ function ProductsContent() {
                 <button
                   type="button"
                   onClick={() => setSelectedStatus('NEEDS_CONFIRMATION')}
+                  aria-pressed={selectedStatus === 'NEEDS_CONFIRMATION'}
                   className={`w-full text-right py-2 px-3 rounded-[980px] font-medium ${
                     selectedStatus === 'NEEDS_CONFIRMATION' ? 'bg-[#143823] text-[#f5ebd2] border border-[#c59b27]/60' : 'text-[#515154] hover:bg-gray-100'
                   }`}
@@ -217,16 +272,18 @@ function ProductsContent() {
 
             <div className="pt-4 border-t border-[#d2d2d7]/40">
               <div className="flex items-center justify-between text-xs mb-2">
-                <label className="font-semibold text-[#1d1d1f]">أقصى سعر:</label>
+                <label htmlFor="max-price" className="font-semibold text-[#1d1d1f]">أقصى سعر:</label>
                 <span className="font-bold text-[#c59b27]">{formatPrice(maxPrice)}</span>
               </div>
               <input
+                id="max-price"
                 type="range"
                 min="100"
                 max="2500"
                 step="50"
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(Number(e.target.value))}
+                aria-label="أقصى سعر للمنتجات"
                 className="w-full accent-[#c59b27] cursor-pointer"
               />
             </div>
@@ -234,7 +291,18 @@ function ProductsContent() {
           </aside>
 
           {/* Product Grid */}
-          <main className="md:col-span-3">
+          <section className="md:col-span-3" aria-busy={loading}>
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <p className="text-xs font-medium text-[#515154]" aria-live="polite">
+                {loading ? 'جارٍ تحميل المنتجات...' : `${sortedProducts.length} منتج مطابق`}
+              </p>
+              {selectedCategory && (
+                <span className="text-[11px] font-semibold text-[#143823] bg-[#f5ebd2] border border-[#c59b27]/30 rounded-full px-3 py-1">
+                  {selectedCategory === 'cat-honey' ? 'عسل نحل طبيعي' : 'زيت زيتون بكر ممتاز'}
+                </span>
+              )}
+            </div>
+
             {loading ? (
               <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
                 {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -248,19 +316,15 @@ function ProductsContent() {
             ) : sortedProducts.length === 0 ? (
               <div className="card p-8 sm:p-12 text-center border border-[#d2d2d7]/50 space-y-4 !rounded-[18px]">
                 <div className="w-16 h-16 rounded-[14px] bg-gray-100 text-gray-400 mx-auto flex items-center justify-center">
-                  <PackageX className="w-8 h-8" />
+                  <PackageX className="w-8 h-8" aria-hidden="true" />
                 </div>
                 <h3 className="text-lg font-semibold text-[#1d1d1f]">لا توجد منتجات تطابق اختياراتك</h3>
                 <p className="text-xs text-[#515154] max-w-md mx-auto">
                   جرب تقليل الفلاتر أو إزالة كلمات البحث للوصول لخيارات أوسع
                 </p>
                 <button
-                  onClick={() => {
-                    setSelectedCategory('');
-                    setSelectedStatus('');
-                    setSearch('');
-                    setMaxPrice(2500);
-                  }}
+                  type="button"
+                  onClick={resetFilters}
                   className="btn px-6 py-2.5 rounded-[980px] bg-[#143823] text-[#f5ebd2] text-xs font-semibold hover:bg-[#1a4a2f] border border-[#c59b27]/60"
                 >
                   عرض جميع المنتجات
@@ -273,7 +337,7 @@ function ProductsContent() {
                 ))}
               </div>
             )}
-          </main>
+          </section>
 
         </div>
 

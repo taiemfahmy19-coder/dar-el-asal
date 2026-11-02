@@ -68,7 +68,7 @@ export default function Header() {
           </Link>
 
           {/* Desktop Nav Links */}
-          <nav className="hidden lg:flex items-center gap-6 text-sm font-medium text-[#1d1d1f]">
+          <nav aria-label="التنقل الرئيسي" className="hidden lg:flex items-center gap-6 text-sm font-medium text-[#1d1d1f]">
             <Link href="/" className="hover:text-[#c59b27] transition-colors">
               الرئيسية
             </Link>
@@ -93,6 +93,8 @@ export default function Header() {
           {/* Search Bar */}
           <form
             onSubmit={handleSearchSubmit}
+            role="search"
+            aria-label="البحث في المتجر"
             className="hidden md:flex flex-1 max-w-xs xl:max-w-md relative"
           >
             <input
@@ -100,13 +102,15 @@ export default function Header() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="ابحث عن نوع العسل أو زيت الزيتون..."
+              aria-label="البحث عن المنتجات"
               className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm bg-[#fcfaf6] border border-[#d2d2d7]/70 rounded-[980px] focus:outline-none focus:border-[#c59b27] focus:ring-4 focus:ring-amber-500/15 transition-all text-[#1d1d1f] placeholder:text-[#515154]"
             />
             <button
               type="submit"
+              aria-label="بحث"
               className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#c59b27] transition-colors"
             >
-              <Search className="w-4 h-4" />
+              <Search className="w-4 h-4" aria-hidden="true" />
             </button>
           </form>
 
@@ -116,10 +120,11 @@ export default function Header() {
             {/* Wishlist */}
             <Link
               href="/favorites"
+              aria-label="المفضلة"
               className="relative p-1.5 sm:p-2.5 text-[#1d1d1f] hover:text-[#c59b27] transition-colors rounded-full hover:bg-gray-100/70"
               title="المفضلة"
             >
-              <Heart className="w-4 h-4 sm:w-5 sm:h-5" />
+              <Heart className="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true" />
               {favorites.length > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 bg-rose-500 text-white text-[9px] sm:text-[10px] w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full flex items-center justify-center font-bold">
                   {favorites.length}
@@ -130,6 +135,7 @@ export default function Header() {
             {/* Cart with "السلة" label on Desktop AND Mobile */}
             <Link
               href="/cart"
+              aria-label="سلة المشتريات"
               className="relative py-1 px-2 sm:py-2 sm:px-3 bg-[#f5f5f7] hover:bg-gold-50/70 text-[#143823] transition-all rounded-full border border-[#d2d2d7]/80 flex items-center gap-1 sm:gap-1.5 shadow-sm shrink-0"
               title="سلة المشتريات"
             >
@@ -154,6 +160,7 @@ export default function Header() {
             {/* Prominent Purchase Button ("إتمام عملية الشراء") */}
             <Link
               href="/cart"
+              aria-label="إتمام عملية الشراء والانتقال إلى السلة"
               className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-gradient-to-r from-[#143823] to-[#1f5636] hover:from-[#1a4a2f] hover:to-[#286f45] text-[#f5ebd2] font-bold text-[10px] sm:text-xs border border-[#c59b27]/80 shadow-sm hover:shadow-md transition-all active:scale-95 shrink-0"
               title="إتمام عملية الشراء والانتقال إلى السلة"
             >
@@ -170,7 +177,11 @@ export default function Header() {
             {user ? (
               <div className="relative" ref={userMenuRef}>
                 <button
+                  type="button"
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  aria-expanded={userMenuOpen}
+                  aria-haspopup="menu"
+                  aria-label="قائمة الحساب"
                   className="flex items-center gap-1 sm:gap-2 p-1 sm:py-1.5 sm:px-3 bg-[#f5f5f7] border border-[#d2d2d7]/70 rounded-[980px] hover:bg-gray-200/70 transition-colors text-right"
                 >
                   <div className="w-7 h-7 rounded-full bg-[#1d1d1f] text-white flex items-center justify-center text-xs font-bold shrink-0">
@@ -189,7 +200,10 @@ export default function Header() {
 
                 {/* Dropdown Menu */}
                 {userMenuOpen && (
-                  <div className="absolute left-0 mt-2 w-56 bg-white rounded-[18px] shadow-[0_10px_40px_rgba(0,0,0,0.12)] border border-[#d2d2d7]/70 py-2 z-50 text-right animate-in fade-in slide-in-from-top-2 duration-150">
+                  <div
+                    aria-label="خيارات الحساب"
+                    className="absolute left-0 mt-2 w-56 bg-white rounded-[18px] shadow-[0_10px_40px_rgba(0,0,0,0.12)] border border-[#d2d2d7]/70 py-2 z-50 text-right animate-in fade-in slide-in-from-top-2 duration-150"
+                  >
                     <div className="px-4 py-2 border-b border-gray-100">
                       <p className="text-xs font-bold text-[#1d1d1f]">{user.name}</p>
                       <p className="text-[11px] text-[#515154] truncate">{user.email}</p>
@@ -281,7 +295,10 @@ export default function Header() {
 
             {/* Mobile Menu Toggle */}
             <button
+              type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-menu"
               className="lg:hidden p-1.5 sm:p-2 text-[#1d1d1f] hover:bg-gray-100 rounded-[10px]"
               aria-label="القائمة"
             >
@@ -294,17 +311,18 @@ export default function Header() {
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-white border-t border-[#d2d2d7]/60 px-4 pt-3 pb-6 space-y-4 animate-in slide-in-from-top duration-200">
-          <form onSubmit={handleSearchSubmit} className="relative">
+        <div id="mobile-menu" className="lg:hidden bg-white border-t border-[#d2d2d7]/60 px-4 pt-3 pb-6 space-y-4 animate-in slide-in-from-top duration-200">
+          <form onSubmit={handleSearchSubmit} role="search" aria-label="البحث في المتجر" className="relative">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="ابحث عن المنتجات..."
+              aria-label="البحث عن المنتجات"
               className="w-full pl-10 pr-4 py-2.5 text-sm bg-[#f5f5f7] border border-[#d2d2d7]/70 rounded-[12px]"
             />
-            <button type="submit" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-              <Search className="w-4 h-4" />
+            <button type="submit" aria-label="بحث" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <Search className="w-4 h-4" aria-hidden="true" />
             </button>
           </form>
 

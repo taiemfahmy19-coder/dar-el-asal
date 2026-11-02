@@ -2,9 +2,12 @@ import React from 'react';
 import { getProducts } from '@/lib/db';
 import HeroSection from '@/components/home/HeroSection';
 import HomeProductsSection from '@/components/home/HomeProductsSection';
+import SmartPackageWizard from '@/components/home/SmartPackageWizard';
 import { ShieldCheck, Truck, CheckCircle2 } from 'lucide-react';
 
-export const revalidate = 0;
+// Cache the storefront shell briefly to reduce origin work while keeping
+// product updates reasonably fresh.
+export const revalidate = 60;
 
 export default function HomePage() {
   const allProducts = getProducts();
@@ -17,7 +20,10 @@ export default function HomePage() {
       {/* 2. Single Unified Products Section (Simple & Clean) */}
       <HomeProductsSection products={allProducts} />
 
-      {/* 3. Simple Luxury Guarantee Bar */}
+      {/* 3. Smart budget-based package builder (the /#smart-package target) */}
+      <SmartPackageWizard />
+
+      {/* 4. Simple Luxury Guarantee Bar */}
       <div className="border-t border-[#d2d2d7]/40 bg-white/60 py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-right">

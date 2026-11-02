@@ -17,7 +17,7 @@ export default function Footer() {
             </div>
             <div>
               <h4 className="font-semibold text-white text-sm mb-1 tracking-tight">منتجات طبيعية مفحوصة 100%</h4>
-              <p className="text-xs text-gray-400 leading-relaxed">
+              <p className="text-xs text-gray-300 leading-relaxed">
                 لا نبيع إلا من مناحل ومعاصر معتمدة مع فحص وتحليل مخبري مؤكد لكل دفعة.
               </p>
             </div>
@@ -29,7 +29,7 @@ export default function Footer() {
             </div>
             <div>
               <h4 className="font-semibold text-white text-sm mb-1 tracking-tight">البيع حسب الطلب (طازج دائماً)</h4>
-              <p className="text-xs text-gray-400 leading-relaxed">
+              <p className="text-xs text-gray-300 leading-relaxed">
                 يتم جلب المنتج وتأكيد توفره فور طلبك مباشرة لضمان أطول فترة صلاحية ونقاء.
               </p>
             </div>
@@ -41,7 +41,7 @@ export default function Footer() {
             </div>
             <div>
               <h4 className="font-semibold text-white text-sm mb-1 tracking-tight">ضمان الاسترجاع والمطابقة</h4>
-              <p className="text-xs text-gray-400 leading-relaxed">
+              <p className="text-xs text-gray-300 leading-relaxed">
                 حقك الكامل في المعاينة عند الاستلام، مع إمكانية الاسترجاع الفوري في حال عدم الرضا.
               </p>
             </div>
@@ -58,14 +58,16 @@ export default function Footer() {
                 <img
                   src="/images/dar-logo-full.jpg"
                   alt="دار العسل والزيتون"
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-contain"
                 />
               </div>
             </div>
-            <p className="text-xs text-gray-400 leading-relaxed">
+            <p className="text-xs text-gray-300 leading-relaxed">
               دار العسل والزيتون — وجهتك الأولى لأجود منتجات النحل الطبيعي، عسل السدر الجبلي، وزيت الزيتون البكر الممتاز المعصور على البارد من الواحات وسفوح الجبال.
             </p>
-            <div className="pt-2 text-xs text-gray-400 flex items-center gap-2">
+            <div className="pt-2 text-xs text-gray-300 flex items-center gap-2">
               <CreditCard className="w-4 h-4 text-[#c59b27]" />
               <span>الدفع نقداً عند الاستلام (Cash on Delivery)</span>
             </div>
@@ -76,7 +78,7 @@ export default function Footer() {
             <h4 className="text-white font-semibold text-sm mb-4 border-r-2 border-[#c59b27] pr-3 tracking-tight">
               أقسام المتجر
             </h4>
-            <ul className="space-y-2.5 text-xs text-gray-400">
+            <ul className="space-y-2.5 text-xs text-gray-300">
               <li>
                 <Link href="/products?categoryId=cat-honey" className="hover:text-white transition-colors">
                   عسل نحل طبيعي وسدر جبلي
@@ -105,7 +107,7 @@ export default function Footer() {
             <h4 className="text-white font-semibold text-sm mb-4 border-r-2 border-[#c59b27] pr-3 tracking-tight">
               خدمة العملاء والسياسات
             </h4>
-            <ul className="space-y-2.5 text-xs text-gray-400">
+            <ul className="space-y-2.5 text-xs text-gray-300">
               <li>
                 <Link href="/orders" className="hover:text-white transition-colors">
                   متابعة وتتبع طلباتي
@@ -139,15 +141,15 @@ export default function Footer() {
             <h4 className="text-white font-semibold text-sm mb-4 border-r-2 border-[#c59b27] pr-3 tracking-tight">
               بيانات المتجر والتشغيل
             </h4>
-            <ul className="space-y-3 text-xs text-gray-400">
+            <ul className="space-y-3 text-xs text-gray-300">
               <li className="flex items-start gap-3">
                 <MapPin className="w-4 h-4 text-[#c59b27] shrink-0 mt-0.5" />
                 <span>الإسكندرية، جمهورية مصر العربية (نطاق التوزيع الأساسي)</span>
               </li>
-              <li className="text-[11px] text-gray-400 leading-relaxed border-t border-white/10 pt-2">
+              <li className="text-xs text-gray-300 leading-relaxed border-t border-white/10 pt-2">
                 إدارة وإشراف: <span className="text-gray-200 font-semibold">شادي محمد توفيق</span>
               </li>
-              <li className="text-[11px] text-gray-400 leading-relaxed">
+              <li className="text-xs text-gray-300 leading-relaxed">
                 خدمة العملاء ومتابعة عروض الأسعار متاحة يومياً عبر حسابك بالمتجر.
               </li>
             </ul>
@@ -156,9 +158,9 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-400">
+        <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-300">
           <p>© 2026 دار العسل والزيتون (DAR EL ASAL & OLIVE) — جميع الحقوق محفوظة.</p>
-          <p className="text-[11px] text-gray-500">
+          <p className="text-xs text-gray-400">
             المالك: شادي محمد توفيق | الإسكندرية، مصر
           </p>
         </div>

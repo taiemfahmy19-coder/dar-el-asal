@@ -7,7 +7,13 @@ import Link from 'next/link';
 import { ShieldCheck, Truck, CreditCard, Banknote, AlertCircle, Lock } from 'lucide-react';
 import { useCart } from '@/components/context/CartContext';
 import { useAuth } from '@/components/context/AuthContext';
-import { formatPrice, EGYPTIAN_GOVERNORATES, getDeliveryFee } from '@/lib/utils';
+import {
+  formatPrice,
+  ACTIVE_GOVERNORATES,
+  getDeliveryFee,
+  isGovernorateSupported,
+  SUPPLIER_STATUS_MAP,
+} from '@/lib/utils';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -17,7 +23,7 @@ export default function CheckoutPage() {
   const [fullName, setFullName] = useState(user?.name || '');
   const [phone, setPhone] = useState(user?.phone || '');
   const [email, setEmail] = useState(user?.email || '');
-  const [governorate, setGovernorate] = useState('الإسكندرية');
+  const [governorate, setGovernorate] = useState(ACTIVE_GOVERNORATES[0]?.name || 'الإسكندرية');
   const [city, setCity] = useState('');
   const [streetAddress, setStreetAddress] = useState('');
   const [buildingDetails, setBuildingDetails] = useState('');
@@ -59,6 +65,11 @@ export default function CheckoutPage() {
 
     if (!fullName.trim() || !phone.trim() || !streetAddress.trim() || !city.trim()) {
       setError('يرجى استكمال جميع بيانات التوصيل الإلزامية (الاسم، الهاتف، المحافظة، المدينة، العنوان بالتفصيل).');
+      return;
+    }
+
+    if (!isGovernorateSupported(governorate)) {
+      setError('التوصيل متاح حاليًا في الإسكندرية فقط. يرجى اختيار محافظة الإسكندرية لإتمام الطلب.');
       return;
     }
 
@@ -120,8 +131,12 @@ export default function CheckoutPage() {
         </div>
 
         {error && (
-          <div className="mb-6 p-4 rounded-[12px] bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0" />
+          <div
+            role="alert"
+            aria-live="polite"
+            className="mb-6 p-4 rounded-[12px] bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2"
+          >
+            <AlertCircle className="w-4 h-4 shrink-0" aria-hidden="true" />
             <span>{error}</span>
           </div>
         )}
@@ -183,19 +198,25 @@ export default function CheckoutPage() {
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-[#1d1d1f] mb-1.5">
+                  <label htmlFor="checkout-governorate" className="block font-semibold text-[#1d1d1f] mb-1.5">
                     المحافظة (النطاق الجغرافي) *
                   </label>
                   <select
+                    id="checkout-governorate"
                     value={governorate}
                     onChange={(e) => setGovernorate(e.target.value)}
+                    aria-describedby="checkout-governorate-note"
                     className="w-full px-3.5 py-3 rounded-[12px] bg-[#f5f5f7] border border-[#d2d2d7]/80 focus:outline-none focus:border-[#c59b27] font-medium text-[#1d1d1f]"
                   >
-                    <option value="الإسكندرية">الإسكندرية (النطاق الأساسي المعتمد للتدشين)</option>
-                    <option value="البحيرة">البحيرة (المناطق المجاورة)</option>
-                    <option value="القاهرة">القاهرة (توسّع مجدول)</option>
-                    <option value="الجيزة">الجيزة (توسّع مجدول)</option>
+                    {ACTIVE_GOVERNORATES.map((g) => (
+                      <option key={g.name} value={g.name}>
+                        {g.name} — متاح الآن
+                      </option>
+                    ))}
                   </select>
+                  <p id="checkout-governorate-note" className="text-[10px] text-[#515154] mt-1.5 leading-relaxed">
+                    التوصيل متاح حاليًا في الإسكندرية فقط. باقي المحافظات قيد التخطيط وغير قابلة للاختيار.
+                  </p>
                 </div>
 
                 <div className="sm:col-span-2">
@@ -339,6 +360,9 @@ export default function CheckoutPage() {
                       <p className="text-[11px] text-[#515154]">
                         {quantity} × {formatPrice(product.price)}
                       </p>
+                      <p className={`text-[10px] mt-0.5 font-medium ${SUPPLIER_STATUS_MAP[product.status]?.color || 'text-gray-500'}`}>
+                        {SUPPLIER_STATUS_MAP[product.status]?.label || product.status}
+                      </p>
                     </div>
                     <span className="font-bold text-[#1d1d1f] shrink-0">
                       {formatPrice(product.price * quantity)}
@@ -367,6 +391,10 @@ export default function CheckoutPage() {
                     {formatPrice(totalAmount)}
                   </span>
                 </div>
+
+                <p className="text-[10px] text-[#515154] leading-relaxed pt-1">
+                  الأسعار ورسوم التوصيل تقديرية وتُثبت في عرض السعر النهائي بعد تأكيد توفر المنتجات وعنوان الاستلام.
+                </p>
               </div>
 
               {/* Submit CTA */}
@@ -391,7 +419,7 @@ export default function CheckoutPage() {
                   <span>طلب رغبة شراء قيد المراجعة</span>
                 </p>
                 <p>
-                  يراجع فريق الإدارة توفر الدفعة الطازجة وتأكيد تسعيرة الشحن مع شركة التوصيل بالإسكندرية وإرسال عرض السعر النهائي لاعتماده.
+                  يراجع فريق الإدارة توفر الدفعة الطازجة وحالة كل منتج، ثم يؤكد تسعيرة الشحن مع شركة التوصيل بالإسكندرية ويرسل عرض السعر النهائي لاعتماده قبل التنفيذ.
                 </p>
               </div>
 

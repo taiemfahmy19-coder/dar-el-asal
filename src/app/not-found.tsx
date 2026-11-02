@@ -63,13 +63,13 @@ export default function NotFound() {
           </p>
           <div className="flex flex-wrap items-center justify-center gap-2 text-xs">
             <Link
-              href="/products?category=honey"
+              href="/products?categoryId=cat-honey"
               className="px-3.5 py-1.5 rounded-full bg-white border border-gray-200 text-gray-700 hover:border-[#c59b27] hover:text-[#143823] transition-colors"
             >
               عسل النحل الطبيعي
             </Link>
             <Link
-              href="/products?category=olive-oil"
+              href="/products?categoryId=cat-olive-oil"
               className="px-3.5 py-1.5 rounded-full bg-white border border-gray-200 text-gray-700 hover:border-[#c59b27] hover:text-[#143823] transition-colors"
             >
               زيت الزيتون البكر

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Sparkles, ShoppingBag, Check, ShieldCheck, Tag } from 'lucide-react';
+import { Sparkles, ShoppingBag, Check, ShieldCheck, Tag, AlertCircle } from 'lucide-react';
 import { Product } from '@/lib/types';
 import { formatPrice } from '@/lib/utils';
 import { useCart } from '@/components/context/CartContext';
@@ -20,7 +20,8 @@ export default function SmartPackageWizard() {
   const { addItem } = useCart();
   const [budget, setBudget] = useState(1200);
   const [theme, setTheme] = useState('immunity');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [packageData, setPackageData] = useState<{
     title: string;
     description: string;
@@ -33,6 +34,7 @@ export default function SmartPackageWizard() {
 
   const fetchPackage = async (selectedBudget: number, selectedTheme: string) => {
     setLoading(true);
+    setError(null);
     setAllAdded(false);
     try {
       const res = await fetch('/api/smart-package', {
@@ -41,11 +43,18 @@ export default function SmartPackageWizard() {
         body: JSON.stringify({ budget: selectedBudget, theme: selectedTheme }),
       });
       const data = await res.json();
-      if (data.success) {
-        setPackageData(data.package);
+
+      if (!res.ok || !data.success) {
+        setPackageData(null);
+        setError(data.error || 'تعذر تجهيز الباقة الآن. يرجى المحاولة مرة أخرى.');
+        return;
       }
+
+      setPackageData(data.package);
     } catch (err) {
       console.error('Error fetching smart package', err);
+      setPackageData(null);
+      setError('تعذر الاتصال بالخادم لتجهيز الباقة. تحقق من اتصالك ثم حاول مرة أخرى.');
     } finally {
       setLoading(false);
     }
@@ -66,7 +75,11 @@ export default function SmartPackageWizard() {
   };
 
   return (
-    <section id="smart-package" className="py-16 bg-[#f5f5f7] border-b border-[#d2d2d7]/50">
+    <section
+      id="smart-package"
+      aria-labelledby="smart-package-title"
+      className="scroll-mt-24 py-16 bg-[#f5f5f7] border-b border-[#d2d2d7]/50"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Title */}
@@ -75,7 +88,7 @@ export default function SmartPackageWizard() {
             <Sparkles className="w-3.5 h-3.5 text-[#0071e3]" />
             <span>دار العسل والزيتون | باقة مصممة لك</span>
           </div>
-          <h2 className="text-2xl sm:text-4xl font-semibold text-[#1d1d1f] tracking-tight">
+          <h2 id="smart-package-title" className="text-2xl sm:text-4xl font-semibold text-[#1d1d1f] tracking-tight">
             اختار لك: باقتك الطبيعية المصممة لميزانيتك
           </h2>
           <p className="text-sm sm:text-base text-[#515154] leading-relaxed">
@@ -136,8 +149,18 @@ export default function SmartPackageWizard() {
         </div>
 
         {/* Package Result Showcase */}
+        {error && (
+          <div
+            role="alert"
+            className="max-w-4xl mx-auto mb-6 p-4 rounded-[14px] bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2 text-right"
+          >
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
+            <span>{error}</span>
+          </div>
+        )}
+
         {loading ? (
-          <div className="max-w-4xl mx-auto p-12 text-center text-[#515154]">
+          <div className="max-w-4xl mx-auto p-12 text-center text-[#515154]" aria-live="polite">
             <div className="inline-block w-8 h-8 border-4 border-[#c59b27] border-t-transparent rounded-full animate-spin mb-3"></div>
             <p className="text-sm font-medium">جارٍ تنسيق أفضل تشكيلة متوافقة من قاعدة البيانات...</p>
           </div>
@@ -244,6 +267,10 @@ export default function SmartPackageWizard() {
               </button>
             </div>
 
+          </div>
+        ) : !error ? (
+          <div className="max-w-4xl mx-auto card p-8 text-center border border-[#d2d2d7]/50 text-sm text-[#515154]">
+            لا توجد باقة مناسبة لهذه الميزانية حاليًا. جرّب اختيار ميزانية أعلى أو غرضًا مختلفًا.
           </div>
         ) : null}
 

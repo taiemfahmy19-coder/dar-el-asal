@@ -6,7 +6,11 @@ import { Sparkles, ShieldCheck, Truck } from 'lucide-react';
 
 export default function AnnouncementBar() {
   return (
-    <div className="bg-[#102d1c] text-white text-xs py-2 px-4 border-b border-[#c59b27]/30">
+    <div
+      role="region"
+      aria-label="شريط إعلانات المتجر"
+      className="bg-[#102d1c] text-white text-xs py-2 px-4 border-b border-[#c59b27]/30"
+    >
       <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-right">
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center gap-1 bg-[#c59b27] text-[#102d1c] px-2.5 py-0.5 rounded-full text-[11px] font-bold shadow-sm">

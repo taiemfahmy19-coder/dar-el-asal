@@ -9,7 +9,7 @@ export default function DeliveryApplyPage() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [governorate, setGovernorate] = useState('القاهرة');
+  const [governorate, setGovernorate] = useState('الإسكندرية');
   const [coveredAreas, setCoveredAreas] = useState('');
   const [vehicleType, setVehicleType] = useState('دراجة نارية مجهزة بصندوق عازل');
   const [nationalId, setNationalId] = useState('');
@@ -96,8 +96,12 @@ export default function DeliveryApplyPage() {
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4 text-xs">
             {error && (
-              <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0" />
+              <div
+                role="alert"
+                aria-live="polite"
+                className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2"
+              >
+                <AlertCircle className="w-4 h-4 shrink-0" aria-hidden="true" />
                 <span>{error}</span>
               </div>
             )}
@@ -150,10 +154,13 @@ export default function DeliveryApplyPage() {
                 >
                   {EGYPTIAN_GOVERNORATES.map((g) => (
                     <option key={g.name} value={g.name}>
-                      {g.name}
+                      {g.name}{g.name === 'الإسكندرية' ? ' — النطاق الحالي' : ' — قيد التوسع'}
                     </option>
                   ))}
                 </select>
+                <p className="text-[10px] text-gray-500 mt-1.5 leading-relaxed">
+                  التعيينات الحالية في الإسكندرية. يمكنك التقديم من محافظة أخرى وسيتم النظر في الطلب عند التوسع.
+                </p>
               </div>
 
               <div className="sm:col-span-2">

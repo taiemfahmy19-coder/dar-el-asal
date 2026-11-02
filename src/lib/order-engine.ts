@@ -9,7 +9,7 @@ import {
   getCourierProfileByUserId,
   saveCourierProfile,
 } from './db';
-import { getDeliveryFee } from './utils';
+import { getDeliveryFee, isGovernorateSupported } from './utils';
 
 // State machine definition: permitted next states
 export const PERMITTED_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
@@ -118,6 +118,13 @@ export function createOrderServerSide(input: CreateOrderInput): {
   error?: string;
 } {
   const db = getDb();
+
+  if (!isGovernorateSupported(input.governorate)) {
+    return {
+      success: false,
+      error: 'التوصيل متاح حاليًا في الإسكندرية فقط. يرجى اختيار محافظة الإسكندرية لإتمام الطلب.',
+    };
+  }
 
   if (!input.items || input.items.length === 0) {
     return { success: false, error: 'سلة المشتريات فارغة' };

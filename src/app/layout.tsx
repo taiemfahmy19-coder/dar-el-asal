@@ -46,12 +46,18 @@ export default function RootLayout({
         />
       </head>
       <body className="font-cairo bg-[#fcfaf6] text-[#1d1d1f] min-h-screen flex flex-col antialiased overflow-x-hidden w-full max-w-full">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:right-3 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-full focus:bg-[#143823] focus:text-[#f5ebd2] focus:text-xs focus:font-bold focus:shadow-lg"
+        >
+          تخطي إلى المحتوى الرئيسي
+        </a>
         <AuthProvider>
           <CartProvider>
             <WishlistProvider>
               <AnnouncementBar />
               <Header />
-              <main className="flex-1">{children}</main>
+              <main id="main-content" className="flex-1">{children}</main>
               <Footer />
               <FloatingMobileCartBar />
               <MobileBottomBar />
