@@ -197,7 +197,10 @@ textarea:focus,
   display: flex;
   width: max-content;
   direction: ltr;
-  animation: promoMarquee 24s linear infinite;
+  animation-name: promoMarquee;
+  animation-duration: 24s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
   will-change: transform;
 }
 
