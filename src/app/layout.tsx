@@ -4,6 +4,7 @@ import { AuthProvider } from '@/components/context/AuthContext';
 import { CartProvider } from '@/components/context/CartContext';
 import { WishlistProvider } from '@/components/context/WishlistContext';
 import AnnouncementBar from '@/components/layout/AnnouncementBar';
+import PromoMarquee from '@/components/layout/PromoMarquee';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import FloatingMobileCartBar from '@/components/cart/FloatingMobileCartBar';
@@ -56,6 +57,7 @@ export default function RootLayout({
           <CartProvider>
             <WishlistProvider>
               <AnnouncementBar />
+              <PromoMarquee />
               <Header />
               <main id="main-content" className="flex-1">{children}</main>
               <Footer />

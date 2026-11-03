@@ -64,6 +64,33 @@ export default function SmartPackageWizard() {
     fetchPackage(budget, theme);
   }, [budget, theme]);
 
+  /**
+   * Native hash navigation is unreliable after hydration in the App Router,
+   * so scroll to the section ourselves when the URL contains #smart-package
+   * (fresh load, back/forward navigation, and in-page anchor clicks).
+   */
+  useEffect(() => {
+    const scrollToSection = () => {
+      if (window.location.hash !== '#smart-package') return;
+      const target = document.getElementById('smart-package');
+      if (!target) return;
+
+      requestAnimationFrame(() => {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    };
+
+    scrollToSection();
+    window.addEventListener('hashchange', scrollToSection);
+    // Fallback: late layout shifts (hero images) can invalidate the first scroll.
+    const retry = window.setTimeout(scrollToSection, 300);
+
+    return () => {
+      window.removeEventListener('hashchange', scrollToSection);
+      window.clearTimeout(retry);
+    };
+  }, []);
+
   const handleAddAllToCart = () => {
     if (!packageData || packageData.products.length === 0) return;
 

@@ -185,6 +185,43 @@ textarea:focus,
 }
 
 /* =========================================
+   Promotional Marquee (RTL ticker)
+   حركة من اليمين إلى اليسار، تتكرر بسلاسة،
+   تتوقف عند hover/focus وتتجاهلها prefers-reduced-motion.
+========================================= */
+.promo-marquee {
+  overflow: hidden;
+}
+
+.promo-marquee-track {
+  display: flex;
+  width: max-content;
+  direction: ltr;
+  animation: promoMarquee 24s linear infinite;
+  will-change: transform;
+}
+
+.promo-marquee:hover .promo-marquee-track,
+.promo-marquee:focus-within .promo-marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes promoMarquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .promo-marquee-track {
+    animation: none;
+  }
+}
+
+/* =========================================
    Custom Scrollbars & RTL Helpers
 ========================================= */
 ::-webkit-scrollbar {
