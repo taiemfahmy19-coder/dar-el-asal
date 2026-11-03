@@ -363,6 +363,70 @@ export default function Header() {
               عن دار العسل والزيتون ومصادرنا
             </Link>
           </nav>
+
+          {/* Account & Logout */}
+          {user ? (
+            <div className="pt-3 border-t border-[#d2d2d7]/70 space-y-1">
+              {user.role === 'admin' && (
+                <Link
+                  href="/admin"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-[10px] bg-amber-50 text-amber-700 font-semibold"
+                >
+                  <Shield className="w-4 h-4 text-amber-600" />
+                  لوحة تحكم الإدارة
+                </Link>
+              )}
+              {user.role === 'delivery' && (
+                <Link
+                  href="/delivery/dashboard"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-[10px] bg-purple-50 text-purple-900 font-semibold"
+                >
+                  <Truck className="w-4 h-4 text-purple-700" />
+                  لوحة مهام التوصيل
+                </Link>
+              )}
+              <Link
+                href="/orders"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2 px-3 py-2 rounded-[10px] hover:bg-gray-100"
+              >
+                <Package className="w-4 h-4 text-gray-500" />
+                طلباتي السابقة
+              </Link>
+              <Link
+                href="/profile"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2 px-3 py-2 rounded-[10px] hover:bg-gray-100"
+              >
+                <UserIcon className="w-4 h-4 text-gray-500" />
+                {user.name.split(' ')[0]} — بيانات الحساب
+              </Link>
+              <button
+                type="button"
+                onClick={async () => {
+                  setMobileMenuOpen(false);
+                  await logout();
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-[10px] text-rose-600 hover:bg-rose-50 text-right font-medium"
+              >
+                <LogOut className="w-4 h-4" />
+                تسجيل الخروج
+              </button>
+            </div>
+          ) : (
+            <div className="pt-3 border-t border-[#d2d2d7]/70">
+              <Link
+                href="/auth/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2 px-3 py-2.5 rounded-[12px] bg-forest-900 text-[#f5ebd2] font-semibold text-sm"
+              >
+                <UserIcon className="w-4 h-4 text-[#c59b27]" />
+                تسجيل الدخول أو إنشاء حساب
+              </Link>
+            </div>
+          )}
         </div>
       )}
 
