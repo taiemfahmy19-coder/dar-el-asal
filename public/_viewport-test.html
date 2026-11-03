@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>Viewport Responsive Tester (local only)</title>
+<style>
+  body { margin: 0; font-family: sans-serif; background: #ddd; }
+  #bar { padding: 6px 10px; background: #222; color: #fff; font-size: 12px; }
+  #frameWrap { padding: 6px; }
+  iframe { border: 3px solid #c00; background: #fff; display: block; }
+  #out { font-size: 12px; white-space: pre-wrap; background: #fff; padding: 8px; margin: 6px; direction: ltr; text-align: left; max-height: 40vh; overflow: auto; }
+</style>
+</head>
+<body>
+<div id="bar">
+  Size:
+  <button data-w="375" data-h="812">375x812</button>
+  <button data-w="390" data-h="844">390x844</button>
+  <button data-w="768" data-h="1024">768x1024</button>
+  <button data-w="1024" data-h="1366">1024x1366</button>
+  |
+  Page:
+  <button data-page="/">home</button>
+  <button data-page="/products">products</button>
+  <button data-page="/shipping">shipping</button>
+  <button data-page="/checkout">checkout</button>
+  <button data-page="/delivery/apply">delivery</button>
+  <button data-page="/#smart-package">smart</button>
+  <button id="measure">Measure</button>
+</div>
+<div id="frameWrap">
+  <iframe id="vp" width="375" height="812" src="/"></iframe>
+</div>
+<pre id="out"></pre>
+<script>
+  const frame = document.getElementById('vp');
+  const out = document.getElementById('out');
+  document.querySelectorAll('#bar button[data-w]').forEach(b => b.onclick = () => {
+    frame.width = b.dataset.w; frame.height = b.dataset.h; log('size ' + frame.width + 'x' + frame.height);
+  });
+  document.querySelectorAll('#bar button[data-page]').forEach(b => b.onclick = () => {
+    frame.src = b.dataset.page; log('page ' + b.dataset.page);
+  });
+  function log(t) { out.textContent = '[' + new Date().toLocaleTimeString() + '] ' + t + '\n' + out.textContent; }
+  const url = new URL(location.href);
+  url.searchParams.get('w') && (frame.width = url.searchParams.get('w'));
+  url.searchParams.get('h') && (frame.height = url.searchParams.get('h'));
+  url.searchParams.get('page') && (frame.src = url.searchParams.get('page'));
+  document.getElementById('measure').onclick = measure;
+  frame.addEventListener('load', () => setTimeout(measure, 500));
+
+  function findCulprit(d) {
+    const w = d.documentElement.clientWidth;
+    const base = docScrollWidth();
+    const diffs = [];
+    for (const child of d.body.children) {
+      if (['SCRIPT', 'STYLE', 'NEXT-ROUTE-ANNOUNCER', 'NEXTJS-PORTAL'].includes(child.tagName)) continue;
+      const prev = child.style.display;
+      child.style.display = 'none';
+      const after = docScrollWidth();
+      child.style.display = prev;
+      if (base - after > 1) diffs.push({ by: base - after, tag: child.tagName + (child.id ? '#' + child.id : ''), cls: (child.className || '').toString().slice(0, 40) });
+    }
+    const visibleWide = [];
+    d.body.querySelectorAll('*').forEach(el => {
+      const r = el.getBoundingClientRect();
+      if (r.right <= w + 2 || r.width <= 0) return;
+      let a = el.parentElement, clipped = false;
+      while (a && a !== d.body) {
+        const o = d.defaultView.getComputedStyle(a).overflowX;
+        if (o === 'hidden' || o === 'clip' || o === 'auto' || o === 'scroll') { clipped = true; break; }
+        a = a.parentElement;
+      }
+      if (!clipped) visibleWide.push(el.tagName.toLowerCase() + (el.id ? '#' + el.id : '') + '.' + (el.className || '').toString().split(' ').slice(0, 2).join('.') + ' right=' + Math.round(r.right));
+    });
+    return { docScrollWidth: base, childDiffs: diffs.slice(0, 8), visibleWide: visibleWide.slice(0, 12) };
+  }
+  function docScrollWidth() {
+    const d = frame.contentDocument;
+    return Math.max(d.documentElement.scrollWidth, d.body.scrollWidth);
+  }
+
+  function measure() {
+    const d = frame.contentDocument;
+    if (!d || d.readyState !== 'complete') { log('iframe not ready'); return; }
+    const w = d.documentElement.clientWidth;
+    const h = d.documentElement.clientHeight;
+    const doc = d.documentElement;
+    const overflowX = Math.max(doc.scrollWidth, d.body.scrollWidth) - w;
+    const wide = [];
+    d.body.querySelectorAll('*').forEach(el => {
+      const r = el.getBoundingClientRect();
+      if (r.width > 0 && (r.right > w + 1 || r.left < -1) && el.children.length === 0) {
+        const tag = el.tagName.toLowerCase();
+        if (!['html', 'body', 'style', 'script'].includes(tag)) {
+          wide.push(tag + (el.className && typeof el.className === 'string' ? '.' + el.className.split(' ').slice(0, 2).join('.') : '') + ' right=' + Math.round(r.right) + ' left=' + Math.round(r.left));
+        }
+      }
+      if (wide.length > 15) return;
+    });
+    const colsOf = (labels) => {
+      for (const sel of labels) {
+        const el = d.querySelector(sel);
+        if (el) {
+          const cs = d.defaultView.getComputedStyle(el);
+          return (cs.display.includes('grid') ? 'grid ' + cs.gridTemplateColumns.split(' ').length + ' cols' : cs.display) + ' [' + sel + ']';
+        }
+      }
+      return null;
+    };
+    const mobileBtn = Array.from(d.querySelectorAll('header button')).find(b => d.defaultView.getComputedStyle(b).display !== 'none' && b.getAttribute('aria-label') === 'القائمة');
+    const nav = d.querySelector('header nav[aria-label="التنقل الرئيسي"]');
+    const addBtns = Array.from(d.querySelectorAll('main button')).filter(b => /السلة/.test(b.innerText));
+    const smallTargets = addBtns.filter(b => b.getBoundingClientRect().height < 44 - 0.5 || b.getBoundingClientRect().width < 44 - 0.5).map(b => Math.round(b.getBoundingClientRect().width) + 'x' + Math.round(b.getBoundingClientRect().height) + ' ' + b.innerText.trim().slice(0, 14));
+    const inputs = Array.from(d.querySelectorAll('input:not([type=hidden]), select, textarea')).map(i => ({ w: Math.round(i.getBoundingClientRect().width), vw: w }));
+    const shortInputs = inputs.filter(i => i.w > 0 && i.w / i.vw < 0.85).length;
+    const marquee = d.querySelector('.promo-marquee');
+    const sp = d.querySelector('#smart-package');
+    const spOverflow = sp ? (() => {
+      let bad = 0;
+      sp.querySelectorAll('button, a').forEach(b => { const r = b.getBoundingClientRect(); if (r.width > 0 && r.right > w + 1) bad++; });
+      return bad;
+    })() : null;
+    const res = {
+      page: d.location.pathname + d.location.hash,
+      clientW: w, clientH: h,
+      overflowX: overflowX,
+      culprit: findCulprit(d),
+      wideLeafs: wide,
+      productGrid: colsOf(['section[aria-labelledby=home-products-title] .grid', 'main section .grid']),
+      desktopNavVisible: nav ? d.defaultView.getComputedStyle(nav).display : null,
+      mobileMenuBtn: mobileBtn ? 'visible' : (nav ? 'desktop-nav-visible' : 'not-found'),
+      addToCartButtons: addBtns.length,
+      addButtonsUnder44px: smallTargets,
+      shortFormInputs: shortInputs + '/' + inputs.length,
+      marqueeHeight: marquee ? Math.round(marquee.getBoundingClientRect().height) : null,
+      smartOverflowButtons: spOverflow,
+      hashSettled: (() => {
+        if (!sp || !d.location.hash) return null;
+        const top = Math.round(sp.getBoundingClientRect().top);
+        const header = d.querySelector('header');
+        const headerBottom = header ? Math.round(header.getBoundingClientRect().bottom) : 0;
+        return { top, headerBottom };
+      })(),
+    };
+    window.LAST = res;
+    window.LAST_AT = Date.now();
+    log(JSON.stringify(res, null, 1));
+  }
+  log('harness ready ' + frame.width + 'x' + frame.height);
+</script>
+</body>
+</html>

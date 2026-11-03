@@ -54,11 +54,11 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-40 bg-white/85 backdrop-blur-xl border-b border-[#d2d2d7]/60 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 sm:h-20 gap-2 sm:gap-4">
+        <div className="flex items-center justify-between h-16 sm:h-20 gap-2 sm:gap-4 lg:gap-3">
           
           {/* Logo */}
           <Link href="/" className="flex items-center gap-1.5 sm:gap-3 shrink-0 group">
-            <div className="relative h-8 sm:h-11 md:h-12 w-28 sm:w-44 md:w-56 overflow-hidden">
+            <div className="relative h-8 sm:h-11 md:h-12 w-24 sm:w-44 md:w-44 xl:w-56 overflow-hidden">
               <img
                 src="/images/dar-logo-full.jpg"
                 alt="دار العسل والزيتون | DAR EL ASAL & OLIVE"
@@ -68,7 +68,7 @@ export default function Header() {
           </Link>
 
           {/* Desktop Nav Links */}
-          <nav aria-label="التنقل الرئيسي" className="hidden lg:flex items-center gap-6 text-sm font-medium text-[#1d1d1f]">
+          <nav aria-label="التنقل الرئيسي" className="hidden lg:flex items-center gap-4 xl:gap-6 text-sm font-medium text-[#1d1d1f]">
             <Link href="/" className="hover:text-[#c59b27] transition-colors">
               الرئيسية
             </Link>
@@ -161,7 +161,7 @@ export default function Header() {
             <Link
               href="/cart"
               aria-label="إتمام عملية الشراء والانتقال إلى السلة"
-              className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-gradient-to-r from-[#143823] to-[#1f5636] hover:from-[#1a4a2f] hover:to-[#286f45] text-[#f5ebd2] font-bold text-[10px] sm:text-xs border border-[#c59b27]/80 shadow-sm hover:shadow-md transition-all active:scale-95 shrink-0"
+              className="hidden sm:inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-gradient-to-r from-[#143823] to-[#1f5636] hover:from-[#1a4a2f] hover:to-[#286f45] text-[#f5ebd2] font-bold text-[10px] sm:text-xs border border-[#c59b27]/80 shadow-sm hover:shadow-md transition-all active:scale-95 shrink-0"
               title="إتمام عملية الشراء والانتقال إلى السلة"
             >
               <ShoppingBag className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#c59b27] shrink-0" />

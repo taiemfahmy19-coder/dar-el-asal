@@ -65,29 +65,74 @@ export default function SmartPackageWizard() {
   }, [budget, theme]);
 
   /**
-   * Native hash navigation is unreliable after hydration in the App Router,
-   * so scroll to the section ourselves when the URL contains #smart-package
-   * (fresh load, back/forward navigation, and in-page anchor clicks).
+   * Native hash navigation is unreliable around hydration in the App Router,
+   * and browsers can cancel a single smooth scroll when images shift layout.
+   * Keep re-anchoring the section (up to 8s, for slow connections) until it settles just under the sticky
+   * header, for both fresh loads (/#smart-package) and in-page anchor clicks.
    */
   useEffect(() => {
-    const scrollToSection = () => {
-      if (window.location.hash !== '#smart-package') return;
-      const target = document.getElementById('smart-package');
-      if (!target) return;
+    const SETTLE_MIN = 60; // top of section when fully settled under header
+    const SETTLE_MAX = 150;
+    const STEP_MS = 120;
+    const MAX_MS = 8000;
+    let timer: number | undefined;
+    let elapsed = 0;
 
-      requestAnimationFrame(() => {
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      });
+    const stop = () => {
+      if (timer !== undefined) {
+        window.clearInterval(timer);
+        timer = undefined;
+      }
     };
 
-    scrollToSection();
-    window.addEventListener('hashchange', scrollToSection);
-    // Fallback: late layout shifts (hero images) can invalidate the first scroll.
-    const retry = window.setTimeout(scrollToSection, 300);
+    const step = () => {
+      if (window.location.hash !== '#smart-package') {
+        stop();
+        return;
+      }
+
+      const target = document.getElementById('smart-package');
+      if (!target) return; // section not mounted yet; retry
+
+      const top = Math.round(target.getBoundingClientRect().top);
+      if (top >= SETTLE_MIN && top <= SETTLE_MAX) {
+        stop(); // settled under the sticky header
+        return;
+      }
+
+      target.scrollIntoView({ behavior: 'instant' as ScrollBehavior, block: 'start' });
+    };
+
+    const start = () => {
+      if (timer !== undefined) return; // already re-anchoring for this hash
+      elapsed = 0;
+      timer = window.setInterval(() => {
+        elapsed += STEP_MS;
+        if (elapsed > MAX_MS) {
+          stop();
+          return;
+        }
+        step();
+      }, STEP_MS);
+    };
+
+    const onHashChange = () => start();
+    const onAnchorClick = (event: MouseEvent) => {
+      if ((event.target as HTMLElement | null)?.closest?.('a[href$="#smart-package"]')) {
+        start();
+      }
+    };
+
+    if (window.location.hash === '#smart-package') start();
+
+    window.addEventListener('hashchange', onHashChange);
+    // Next.js soft navigation may not fire hashchange, so watch clicks too.
+    document.addEventListener('click', onAnchorClick);
 
     return () => {
-      window.removeEventListener('hashchange', scrollToSection);
-      window.clearTimeout(retry);
+      stop();
+      window.removeEventListener('hashchange', onHashChange);
+      document.removeEventListener('click', onAnchorClick);
     };
   }, []);
 
