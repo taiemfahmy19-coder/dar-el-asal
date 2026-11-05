@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserByEmail } from '@/lib/db';
-import { comparePassword, createSessionToken, AUTH_COOKIE_OPTIONS } from '@/lib/auth';
+import { comparePassword, createSessionToken, sessionCookieOptionsFor } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
   try {
@@ -45,7 +45,13 @@ export async function POST(req: NextRequest) {
       message: 'تم تسجيل الدخول بنجاح',
     });
 
-    response.cookies.set(AUTH_COOKIE_OPTIONS.name, token, AUTH_COOKIE_OPTIONS.options);
+    response.cookies.set(
+      sessionCookieOptionsFor(user).name,
+      token,
+      // Long-lived, renewable: 30d for customers, 7d for admins.
+      // Only the session reference (JWT) is stored — never the password.
+      sessionCookieOptionsFor(user).options
+    );
     return response;
   } catch (error: any) {
     console.error('Login error:', error);

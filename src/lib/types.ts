@@ -11,6 +11,8 @@ export interface User {
   role: UserRole;
   status: UserStatus;
   avatarUrl?: string;
+  /** Server-side session invalidation counter, bumped on logout. */
+  tokenVersion?: number;
   createdAt: string;
   updatedAt: string;
 }

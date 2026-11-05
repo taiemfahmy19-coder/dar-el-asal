@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
+import { isGovernorateSupported } from '@/lib/utils';
+import { validateNewOrderPayload } from '@/lib/validation';
 import { getOrders, syncCloudDb, syncCloudDbPush, getDb } from '@/lib/db';
 import { createOrderServerSide } from '@/lib/order-engine';
 import { OrderStatus } from '@/lib/types';
@@ -57,29 +59,37 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const currentUser = await getCurrentUser();
 
-    if (!body.customerName || !body.customerPhone || !body.governorate || !body.streetAddress) {
+    // ---- Server-side anti-fake-order gate (mirrors the client validation) ----
+    // Validates name / phone / email / governorate / city / address /
+    // delivery date / cart before anything is allowed to be saved. Prices are
+    // independently re-computed inside createOrderServerSide from the trusted
+    // server-side product store, never from client input.
+    const check = validateNewOrderPayload(body, isGovernorateSupported);
+    if (!check.ok) {
       return NextResponse.json(
-        { error: 'يرجى استكمال بيانات التوصيل (الاسم، رقم الهاتف، المحافظة، العنوان بالتفصيل)' },
+        { error: check.error, errors: check.errors },
         { status: 400 }
       );
     }
-
-    if (!body.items || body.items.length === 0) {
-      return NextResponse.json({ error: 'سلة المشتريات فارغة' }, { status: 400 });
-    }
+    const input = check.normalized;
 
     const result = createOrderServerSide({
       userId: currentUser?.id,
-      customerName: body.customerName,
-      customerEmail: body.customerEmail || currentUser?.email || 'customer@darelasal.eg',
-      customerPhone: body.customerPhone,
-      governorate: body.governorate,
-      city: body.city || body.governorate,
-      streetAddress: body.streetAddress,
+      customerName: input.customerName,
+      customerEmail: input.customerEmail,
+      customerPhone: input.customerPhone,
+      governorate: input.governorate,
+      city: input.city,
+      streetAddress: input.streetAddress as string,
       buildingDetails: body.buildingDetails,
       notes: body.notes,
-      items: body.items,
-      paymentMethod: body.paymentMethod || 'COD',
+      deliveryDate: input.deliveryDate,
+      deliveryTimeWindow:
+        typeof body.deliveryTimeWindow === 'string' && body.deliveryTimeWindow.trim()
+          ? body.deliveryTimeWindow.trim().slice(0, 60)
+          : '12:00 م - 03:00 م (ظهراً)',
+      items: input.items,
+      paymentMethod: 'COD',
     });
 
     if (!result.success || !result.order) {

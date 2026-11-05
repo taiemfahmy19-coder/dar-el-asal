@@ -14,6 +14,23 @@ import {
   isGovernorateSupported,
   SUPPLIER_STATUS_MAP,
 } from '@/lib/utils';
+import {
+  normalizeEgyptianPhone,
+  isValidEmail,
+  isValidDeliveryDate,
+  EGYPT_PHONE_ERROR,
+  ORDER_EMAIL_ERROR,
+} from '@/lib/validation';
+
+interface CheckoutFieldErrors {
+  fullName?: string;
+  phone?: string;
+  email?: string;
+  governorate?: string;
+  city?: string;
+  streetAddress?: string;
+  deliveryDate?: string;
+}
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -39,6 +56,55 @@ export default function CheckoutPage() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<CheckoutFieldErrors>({});
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+  const submittingRef = React.useRef(false);
+
+  /** Runs client-side validation near the browser; the API re-runs the
+      full server-side gate, so this can never be the only layer. */
+  const validateCheckoutFields = (): CheckoutFieldErrors => {
+    const errs: CheckoutFieldErrors = {};
+
+    if (fullName.trim().length < 3) {
+      errs.fullName = 'من فضلك أدخل الاسم الكامل للمستلم (3 أحرف على الأقل).';
+    }
+
+    if (!normalizeEgyptianPhone(phone)) {
+      errs.phone = EGYPT_PHONE_ERROR;
+    }
+
+    if (!isValidEmail(email)) {
+      errs.email = ORDER_EMAIL_ERROR;
+    }
+
+    if (!isGovernorateSupported(governorate)) {
+      errs.governorate = 'التوصيل متاح حاليًا في الإسكندرية فقط.';
+    }
+
+    if (city.trim().length < 2) {
+      errs.city = 'من فضلك أدخل المدينة / الحي أو المنطقة.';
+    }
+
+    if (streetAddress.trim().length < 5) {
+      errs.streetAddress = 'من فضلك أدخل العنوان بالتفصيل (اسم الشارع ورقم العقار).';
+    }
+
+    if (!isValidDeliveryDate(deliveryDate)) {
+      errs.deliveryDate = 'من فضلك اختر تاريخ استلام صحيحًا ضمن 30 يومًا قادمة وليس في الماضي.';
+    }
+
+    return errs;
+  };
+
+  /** Live re-validation of a field once the user tried to submit */
+  const fieldError = (field: keyof CheckoutFieldErrors) =>
+    attemptedSubmit ? fieldErrors[field] : undefined;
+
+  const updateError = (field: keyof CheckoutFieldErrors, message?: string) =>
+    setFieldErrors((prev) => {
+      if (prev[field] === message) return prev;
+      return { ...prev, [field]: message };
+    });
 
   if (items.length === 0) {
     return (
@@ -63,23 +129,27 @@ export default function CheckoutPage() {
     e.preventDefault();
     setError(null);
 
-    if (!fullName.trim() || !phone.trim() || !streetAddress.trim() || !city.trim()) {
-      setError('يرجى استكمال جميع بيانات التوصيل الإلزامية (الاسم، الهاتف، المحافظة، المدينة، العنوان بالتفصيل).');
-      return;
-    }
+    // Idempotency guard: ignore a re-submit while a request is already
+    // in flight (React state alone can lag behind a fast double click).
+    if (submittingRef.current || loading) return;
 
-    if (!isGovernorateSupported(governorate)) {
-      setError('التوصيل متاح حاليًا في الإسكندرية فقط. يرجى اختيار محافظة الإسكندرية لإتمام الطلب.');
+    setAttemptedSubmit(true);
+    const errs = validateCheckoutFields();
+    setFieldErrors(errs);
+
+    if (Object.keys(errs).length > 0) {
+      setError('يرجى تصحيح الحقول المميزة باللون الأحمر قبل إرسال الطلب.');
       return;
     }
 
     setLoading(true);
+    submittingRef.current = true;
 
     try {
       const orderPayload = {
         customerName: fullName.trim(),
-        customerEmail: email.trim() || 'customer@darelasal.eg',
-        customerPhone: phone.trim(),
+        customerEmail: email.trim(),
+        customerPhone: normalizeEgyptianPhone(phone) || phone.trim(),
         governorate,
         city: city.trim(),
         streetAddress: streetAddress.trim(),
@@ -104,7 +174,11 @@ export default function CheckoutPage() {
 
       if (!res.ok || !data.success) {
         setError(data.error || 'فشل إرسال طلب رغبة الشراء، يرجى المحاولة مرة أخرى');
+        if (data.errors) {
+          setFieldErrors((prev) => ({ ...prev, ...data.errors }));
+        }
         setLoading(false);
+        submittingRef.current = false;
         return;
       }
 
@@ -113,6 +187,7 @@ export default function CheckoutPage() {
     } catch {
       setError('حدث خطأ في الاتصال بالخادم أثناء إرسال طلب رغبة الشراء');
       setLoading(false);
+      submittingRef.current = false;
     }
   };
 
@@ -155,46 +230,87 @@ export default function CheckoutPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                 <div>
-                  <label className="block font-semibold text-[#1d1d1f] mb-1.5">
+                  <label className="block font-semibold text-[#1d1d1f] mb-1.5" htmlFor="checkout-fullname">
                     الاسم الكامل للمستلم *
                   </label>
                   <input
+                    id="checkout-fullname"
                     type="text"
                     required
                     value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
+                    onChange={(e) => {
+                      setFullName(e.target.value);
+                      if (attemptedSubmit) {
+                        updateError('fullName', e.target.value.trim().length < 3 ? 'من فضلك أدخل الاسم الكامل للمستلم (3 أحرف على الأقل).' : undefined);
+                      }
+                    }}
+                    aria-invalid={!!fieldError('fullName')}
+                    aria-describedby={fieldError('fullName') ? 'checkout-fullname-error' : undefined}
                     placeholder="مثال: أحمد عبد الله"
-                    className="w-full px-3.5 py-3 rounded-[12px] bg-[#f5f5f7] border border-[#d2d2d7]/80 focus:outline-none focus:border-[#0071e3] focus:ring-4 focus:ring-blue-500/15 text-[#1d1d1f]"
+                    className={`w-full px-3.5 py-3 rounded-[12px] bg-[#f5f5f7] border ${fieldError('fullName') ? 'border-rose-500' : 'border-[#d2d2d7]/80'} focus:outline-none focus:border-[#0071e3] focus:ring-4 focus:ring-blue-500/15 text-[#1d1d1f]`}
                   />
+                  {fieldError('fullName') && (
+                    <p id="checkout-fullname-error" role="alert" className="mt-1.5 text-[11px] font-medium text-rose-700">
+                      {fieldError('fullName')}
+                    </p>
+                  )}
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-[#1d1d1f] mb-1.5">
+                  <label className="block font-semibold text-[#1d1d1f] mb-1.5" htmlFor="checkout-phone">
                     رقم الهاتف المحمول (للتواصل مع الكابتن) *
                   </label>
                   <input
+                    id="checkout-phone"
                     type="tel"
+                    inputMode="numeric"
                     required
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={(e) => {
+                      setPhone(e.target.value);
+                      if (attemptedSubmit) {
+                        updateError('phone', normalizeEgyptianPhone(e.target.value) ? undefined : EGYPT_PHONE_ERROR);
+                      }
+                    }}
+                    aria-invalid={!!fieldError('phone')}
+                    aria-describedby={fieldError('phone') ? 'checkout-phone-error' : undefined}
                     placeholder="01012345678"
                     dir="ltr"
-                    className="w-full px-3.5 py-3 rounded-[12px] bg-[#f5f5f7] border border-[#d2d2d7]/80 focus:outline-none focus:border-[#0071e3] focus:ring-4 focus:ring-blue-500/15 text-right text-[#1d1d1f]"
+                    className={`w-full px-3.5 py-3 rounded-[12px] bg-[#f5f5f7] border ${fieldError('phone') ? 'border-rose-500' : 'border-[#d2d2d7]/80'} focus:outline-none focus:border-[#0071e3] focus:ring-4 focus:ring-blue-500/15 text-right text-[#1d1d1f]`}
                   />
+                  {fieldError('phone') && (
+                    <p id="checkout-phone-error" role="alert" className="mt-1.5 text-[11px] font-medium text-rose-700 leading-relaxed">
+                      {fieldError('phone')}
+                    </p>
+                  )}
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-[#1d1d1f] mb-1.5">
-                    البريد الإلكتروني (لتلقي تحديثات الطلب)
+                  <label className="block font-semibold text-[#1d1d1f] mb-1.5" htmlFor="checkout-email">
+                    البريد الإلكتروني (لتلقي تحديثات الطلب) *
                   </label>
                   <input
+                    id="checkout-email"
                     type="email"
+                    required
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (attemptedSubmit) {
+                        updateError('email', isValidEmail(e.target.value) ? undefined : ORDER_EMAIL_ERROR);
+                      }
+                    }}
+                    aria-invalid={!!fieldError('email')}
+                    aria-describedby={fieldError('email') ? 'checkout-email-error' : undefined}
                     placeholder="example@domain.com"
                     dir="ltr"
-                    className="w-full px-3.5 py-3 rounded-[12px] bg-[#f5f5f7] border border-[#d2d2d7]/80 focus:outline-none focus:border-[#0071e3] focus:ring-4 focus:ring-blue-500/15 text-right text-[#1d1d1f]"
+                    className={`w-full px-3.5 py-3 rounded-[12px] bg-[#f5f5f7] border ${fieldError('email') ? 'border-rose-500' : 'border-[#d2d2d7]/80'} focus:outline-none focus:border-[#0071e3] focus:ring-4 focus:ring-blue-500/15 text-right text-[#1d1d1f]`}
                   />
+                  {fieldError('email') && (
+                    <p id="checkout-email-error" role="alert" className="mt-1.5 text-[11px] font-medium text-rose-700">
+                      {fieldError('email')}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -220,31 +336,57 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="block font-semibold text-[#1d1d1f] mb-1.5">
+                  <label className="block font-semibold text-[#1d1d1f] mb-1.5" htmlFor="checkout-city">
                     المدينة / الحي أو المنطقة *
                   </label>
                   <input
+                    id="checkout-city"
                     type="text"
                     required
                     value={city}
-                    onChange={(e) => setCity(e.target.value)}
+                    onChange={(e) => {
+                      setCity(e.target.value);
+                      if (attemptedSubmit) {
+                        updateError('city', e.target.value.trim().length < 2 ? 'من فضلك أدخل المدينة / الحي أو المنطقة.' : undefined);
+                      }
+                    }}
+                    aria-invalid={!!fieldError('city')}
+                    aria-describedby={fieldError('city') ? 'checkout-city-error' : undefined}
                     placeholder="مثال: سموحة، رشدي، لوران، ميامي، كفر عبده..."
-                    className="w-full px-3.5 py-3 rounded-[12px] bg-[#f5f5f7] border border-[#d2d2d7]/80 focus:outline-none focus:border-[#c59b27] focus:ring-4 focus:ring-amber-500/15 text-[#1d1d1f]"
+                    className={`w-full px-3.5 py-3 rounded-[12px] bg-[#f5f5f7] border ${fieldError('city') ? 'border-rose-500' : 'border-[#d2d2d7]/80'} focus:outline-none focus:border-[#c59b27] focus:ring-4 focus:ring-amber-500/15 text-[#1d1d1f]`}
                   />
+                  {fieldError('city') && (
+                    <p id="checkout-city-error" role="alert" className="mt-1.5 text-[11px] font-medium text-rose-700">
+                      {fieldError('city')}
+                    </p>
+                  )}
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="block font-semibold text-[#1d1d1f] mb-1.5">
+                  <label className="block font-semibold text-[#1d1d1f] mb-1.5" htmlFor="checkout-street">
                     اسم الشارع والعنوان بالتفصيل *
                   </label>
                   <input
+                    id="checkout-street"
                     type="text"
                     required
                     value={streetAddress}
-                    onChange={(e) => setStreetAddress(e.target.value)}
+                    onChange={(e) => {
+                      setStreetAddress(e.target.value);
+                      if (attemptedSubmit) {
+                        updateError('streetAddress', e.target.value.trim().length < 5 ? 'من فضلك أدخل العنوان بالتفصيل (اسم الشارع ورقم العقار).' : undefined);
+                      }
+                    }}
+                    aria-invalid={!!fieldError('streetAddress')}
+                    aria-describedby={fieldError('streetAddress') ? 'checkout-street-error' : undefined}
                     placeholder="اسم الشارع ورقم العقار أو علامة مميزة قريبة"
-                    className="w-full px-3.5 py-3 rounded-[12px] bg-[#f5f5f7] border border-[#d2d2d7]/80 focus:outline-none focus:border-[#c59b27] focus:ring-4 focus:ring-amber-500/15 text-[#1d1d1f]"
+                    className={`w-full px-3.5 py-3 rounded-[12px] bg-[#f5f5f7] border ${fieldError('streetAddress') ? 'border-rose-500' : 'border-[#d2d2d7]/80'} focus:outline-none focus:border-[#c59b27] focus:ring-4 focus:ring-amber-500/15 text-[#1d1d1f]`}
                   />
+                  {fieldError('streetAddress') && (
+                    <p id="checkout-street-error" role="alert" className="mt-1.5 text-[11px] font-medium text-rose-700">
+                      {fieldError('streetAddress')}
+                    </p>
+                  )}
                 </div>
 
                 <div className="sm:col-span-2">
@@ -262,16 +404,29 @@ export default function CheckoutPage() {
 
                 {/* Delivery Scheduling (Directive Sec 10 & 11) */}
                 <div className="sm:col-span-1">
-                  <label className="block font-semibold text-[#1d1d1f] mb-1.5">
+                  <label className="block font-semibold text-[#1d1d1f] mb-1.5" htmlFor="checkout-date">
                     تاريخ الاستلام المفضل *
                   </label>
                   <input
+                    id="checkout-date"
                     type="date"
                     required
                     value={deliveryDate}
-                    onChange={(e) => setDeliveryDate(e.target.value)}
-                    className="w-full px-3.5 py-3 rounded-[12px] bg-[#f5f5f7] border border-[#d2d2d7]/80 focus:outline-none focus:border-[#c59b27] font-medium text-[#1d1d1f]"
+                    onChange={(e) => {
+                      setDeliveryDate(e.target.value);
+                      if (attemptedSubmit) {
+                        updateError('deliveryDate', isValidDeliveryDate(e.target.value) ? undefined : 'من فضلك اختر تاريخ استلام صحيحًا ضمن 30 يومًا قادمة وليس في الماضي.');
+                      }
+                    }}
+                    aria-invalid={!!fieldError('deliveryDate')}
+                    aria-describedby={fieldError('deliveryDate') ? 'checkout-date-error' : undefined}
+                    className={`w-full px-3.5 py-3 rounded-[12px] bg-[#f5f5f7] border ${fieldError('deliveryDate') ? 'border-rose-500' : 'border-[#d2d2d7]/80'} focus:outline-none focus:border-[#c59b27] font-medium text-[#1d1d1f]`}
                   />
+                  {fieldError('deliveryDate') && (
+                    <p id="checkout-date-error" role="alert" className="mt-1.5 text-[11px] font-medium text-rose-700">
+                      {fieldError('deliveryDate')}
+                    </p>
+                  )}
                 </div>
 
                 <div className="sm:col-span-1">
@@ -401,22 +556,29 @@ export default function CheckoutPage() {
               <button
                 type="submit"
                 disabled={loading}
+                aria-busy={loading}
                 className="btn w-full inline-flex items-center justify-center gap-2 py-4 px-6 rounded-[980px] bg-[#143823] text-[#f5ebd2] font-semibold text-sm hover:bg-[#1a4a2f] border border-[#c59b27]/60 hover:scale-[1.02] active:scale-95 transition-all shadow-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
                 {loading ? (
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" aria-hidden="true"></div>
+                    <span>جارٍ إرسال الطلب...</span>
+                  </>
                 ) : (
                   <>
-                    <Lock className="w-4 h-4 text-white/90" />
-                    <span>إرسال طلب رغبة الشراء للمراجعة</span>
+                    <Lock className="w-4 h-4 text-white/90" aria-hidden="true" />
+                    <span>إرسال الطلب للمراجعة — بدون دفع الآن</span>
                   </>
                 )}
               </button>
 
               <div className="text-[11px] text-[#515154] text-center leading-relaxed space-y-1.5 pt-1">
                 <p className="flex items-center justify-center gap-1.5 text-[#143823] font-semibold">
-                  <ShieldCheck className="w-4 h-4 text-[#c59b27]" />
+                  <ShieldCheck className="w-4 h-4 text-[#c59b27]" aria-hidden="true" />
                   <span>طلب رغبة شراء قيد المراجعة</span>
+                </p>
+                <p className="text-[#143823]">
+                  سيتم تسجيل طلبك لمراجعة الإدارة ومراسلتك بعرض السعر النهائي — ليست عملية دفع نهائية.
                 </p>
                 <p>
                   يراجع فريق الإدارة توفر الدفعة الطازجة وحالة كل منتج، ثم يؤكد تسعيرة الشحن مع شركة التوصيل بالإسكندرية ويرسل عرض السعر النهائي لاعتماده قبل التنفيذ.

@@ -1,0 +1,260 @@
+/**
+ * QA validation test: phone / email / anti-fake-order gating + session lifetime.
+ * Executes the real TypeScript validation module and auth logic in-memory,
+ * so it never writes to the store or cloud production data.
+ */
+
+const fs = require('fs');
+const path = require('path');
+const Module = require('module');
+const ts = require('typescript');
+const bcrypt = require('bcryptjs');
+
+let passCount = 0;
+let failCount = 0;
+
+function assert(condition, testName) {
+  if (condition) {
+    console.log(`PASS: ${testName}`);
+    passCount++;
+  } else {
+    console.error(`FAIL: ${testName}`);
+    failCount++;
+  }
+}
+
+function loadTs(file, mocks = {}) {
+  const source = fs.readFileSync(file, 'utf8');
+  const { outputText } = ts.transpileModule(source, {
+    compilerOptions: {
+      module: ts.ModuleKind.CommonJS,
+      target: ts.ScriptTarget.ES2019,
+      esModuleInterop: true,
+    },
+    fileName: file,
+  });
+
+  const loaded = new Module(file, module);
+  loaded.filename = file;
+  loaded.paths = Module._nodeModulePaths(path.dirname(file));
+
+  const originalLoad = Module._load;
+  Module._load = function (request, parent, isMain) {
+    if (parent && parent.filename === file && Object.prototype.hasOwnProperty.call(mocks, request)) {
+      return mocks[request];
+    }
+    return originalLoad.apply(this, arguments);
+  };
+
+  try {
+    loaded._compile(outputText, file);
+  } finally {
+    Module._load = originalLoad;
+  }
+
+  return loaded.exports;
+}
+
+console.log('====================================================');
+console.log('QA validation: phone / email / order gate / session');
+console.log('====================================================\n');
+
+const root = __dirname;
+const validation = loadTs(path.join(root, 'src', 'lib', 'validation.ts'), {});
+
+const utils = loadTs(path.join(root, 'src', 'lib', 'utils.ts'), { './types': {} });
+
+// ============ 1. Egyptian phone validation ============
+const phone = (raw) => validation.normalizeEgyptianPhone(raw);
+
+assert(phone('123') === null, 'Phone 123 is rejected');
+
+assert(phone('01012345678') === '01012345678', 'Phone 01012345678 is accepted');
+assert(phone('01112345678') === '01112345678', 'Phone 01112345678 is accepted');
+assert(phone('01212345678') === '01212345678', 'Phone 01212345678 is accepted');
+assert(phone('01512345678') === '01512345678', 'Phone 01512345678 is accepted');
+
+assert(phone('0101234567') === null, '10-digit phone is rejected');
+assert(phone('010123456789') === null, '12-digit phone is rejected');
+
+assert(phone('abc01012345') === null, 'Phone with letters is rejected');
+assert(phone('0101234$678') === null, 'Phone with symbols is rejected');
+assert(phone('+201012345678') === null, 'International +20 format is rejected');
+assert(phone('966570207883') === null, 'Non-Egyptian (Saudi) number is rejected');
+assert(phone('01912345678') === null, 'Invalid prefix 019 is rejected');
+assert(phone('') === null, 'Empty phone is rejected');
+
+assert(phone('٠١٠١٢٣٤٥٦٧٨') === '01012345678', 'Arabic-Indic digits are unified and accepted');
+assert(phone('010 123 45678') === '01012345678', 'Separator spacing is unified and accepted');
+assert(phone('010١2٣45678') === '01012345678', 'Mixed Arabic/English digits are unified and accepted');
+
+assert(
+  typeof validation.EGYPT_PHONE_ERROR === 'string' &&
+    validation.EGYPT_PHONE_ERROR.includes('11') &&
+    validation.EGYPT_PHONE_ERROR.includes('011'),
+  'Phone error message is Arabic and mentions 11 digits and prefixes'
+);
+
+// ============ 2. Email validation ============
+assert(validation.isValidEmail('user@domain.com') === true, 'Email user@domain.com is accepted');
+assert(validation.isValidEmail('name+tag@sub.domain.eg') === true, 'Complex but valid email is accepted');
+assert(validation.isValidEmail('not-an-email') === false, 'Email without @ is rejected');
+assert(validation.isValidEmail('a@b') === false, 'Email without TLD is rejected');
+assert(validation.isValidEmail('a @domain.com') === false, 'Email with spaces is rejected');
+assert(validation.isValidEmail('') === false, 'Empty email is rejected');
+assert(
+  typeof validation.ORDER_EMAIL_ERROR === 'string' && validation.ORDER_EMAIL_ERROR.includes('صحيحًا'),
+  'Email error message is Arabic'
+);
+
+// ============ 3. Delivery date validation ============
+const day = (offset) => {
+  const d = new Date();
+  d.setDate(d.getDate() + offset);
+  return d.toISOString().split('T')[0];
+};
+assert(validation.isValidDeliveryDate(day(2)) === true, 'Delivery date 2 days ahead is accepted');
+assert(validation.isValidDeliveryDate(day(-1)) === false, 'Past delivery date is rejected');
+assert(validation.isValidDeliveryDate(day(35)) === false, 'Delivery date beyond 30 days is rejected');
+assert(validation.isValidDeliveryDate('2026-02-30') === false, 'Impossible calendar date is rejected');
+assert(validation.isValidDeliveryDate('not-a-date') === false, 'Non-date string is rejected');
+
+// ============ 4. Server-side anti-fake-order gate ============
+const supported = (g) => utils.isGovernorateSupported(g);
+
+const validBody = {
+  customerName: 'عميل حقيقي',
+  customerPhone: '01012345678',
+  customerEmail: 'customer@example.com',
+  governorate: 'الإسكندرية',
+  city: 'سموحة',
+  streetAddress: 'شارع مدينة نصر بجوار مسجد الشهيد رقم 12',
+  deliveryDate: day(2),
+  items: [{ productId: 'prod-1', quantity: 2 }],
+};
+
+const valid = validation.validateNewOrderPayload(validBody, supported);
+assert(valid.ok === true, 'A complete valid order payload passes the server gate');
+assert(valid.normalized.customerPhone === '01012345678', 'Gate stores the unified 11-digit phone');
+assert(valid.normalized.customerEmail === 'customer@example.com', 'Gate stores the email');
+
+const emptyCart = validation.validateNewOrderPayload({ ...validBody, items: [] }, supported);
+assert(emptyCart.ok === false, 'Empty cart is rejected by the server gate');
+assert((emptyCart.errors && emptyCart.errors.items) !== undefined, 'Empty cart gets a clear Arabic error');
+
+const badGov = validation.validateNewOrderPayload(
+  { ...validBody, governorate: 'القاهرة' },
+  supported
+);
+assert(badGov.ok === false, 'Unsupported governorate is rejected by the server gate');
+assert((badGov.errors && badGov.errors.governorate) !== undefined, 'Unsupported governorate gets a clear error');
+
+const badPhone = validation.validateNewOrderPayload(
+  { ...validBody, customerPhone: '123' },
+  supported
+);
+assert(badPhone.ok === false, 'Phone 123 is rejected by the server gate');
+assert((badPhone.errors && badPhone.errors.customerPhone) === validation.EGYPT_PHONE_ERROR, 'Server phone error matches the required Arabic message');
+
+const badEmail = validation.validateNewOrderPayload(
+  { ...validBody, customerEmail: 'wrong-email@@' },
+  supported
+);
+assert(badEmail.ok === false, 'Bad email is rejected by the server gate');
+assert((badEmail.errors && badEmail.errors.customerEmail) !== undefined, 'Bad email gets a clear error');
+
+const noName = validation.validateNewOrderPayload({ ...validBody, customerName: '  ' }, supported);
+assert(noName.ok === false, 'Missing name is rejected by the server gate');
+
+const noAddress = validation.validateNewOrderPayload({ ...validBody, streetAddress: 'x' }, supported);
+assert(noAddress.ok === false, 'Too-short address is rejected by the server gate');
+
+const badDate = validation.validateNewOrderPayload({ ...validBody, deliveryDate: '2020-01-01' }, supported);
+assert(badDate.ok === false, 'Past delivery date is rejected by the server gate');
+
+// Extra: valid gate must not accept repeat-buttons creating duplicates —
+// normalized payload is deterministic, and price trust is covered by
+// qa-flow-test (subtotal computed from server-side product price).
+const again = validation.validateNewOrderPayload(validBody, supported);
+assert(again.ok === true && JSON.stringify(again.normalized.items) === JSON.stringify(valid.normalized.items), 'Repeated identical submission normalizes identically (dedupe-safe input)');
+
+// ============ 5. Session lifetime, renewal & real logout ============
+const userWithVersion = {
+  id: 'u-1',
+  name: 'QA User',
+  email: 'qa@example.test',
+  passwordHash: bcrypt.hashSync('correct-horse-battery', 10),
+  phone: '01000000000',
+  role: 'customer',
+  status: 'active',
+  createdAt: '2026-01-01T00:00:00.000Z',
+  updatedAt: '2026-01-01T00:00:00.000Z',
+};
+
+const tokenCookieHolder = { token: null };
+const auth = loadTs(path.join(root, 'src', 'lib', 'auth.ts'), {
+  'next/headers': {
+    cookies: () => ({ get: (name) => (tokenCookieHolder.token ? { name, value: tokenCookieHolder.token } : undefined) }),
+  },
+  './types': {},
+  './db': {
+    getUserById: (id) => (id === userWithVersion.id ? userWithVersion : null),
+  },
+});
+
+(async () => {
+  // 5a. Login-style session creation
+  const token = await auth.createSessionToken(userWithVersion);
+  const session = await auth.verifySessionToken(token);
+  assert(session && session.userId === userWithVersion.id, 'A valid session token verifies');
+  assert(session && (session.sv === 0 || session.sv === undefined), 'Fresh session token carries the current session version');
+
+  // Customer session is long-lived and renewable (30 days)
+  const customerOpts = auth.sessionCookieOptionsFor(userWithVersion).options;
+  assert(customerOpts.maxAge === 60 * 60 * 24 * 30, 'Customer session cookie lasts 30 days');
+  assert(customerOpts.httpOnly === true && customerOpts.sameSite === 'lax', 'Session cookie stays httpOnly and sameSite-lax');
+
+  // Admin session: safe renewable window (7 days), never unbounded
+  const adminUser = { ...userWithVersion, role: 'admin' };
+  const adminOpts = auth.sessionCookieOptionsFor(adminUser).options;
+  assert(adminOpts.maxAge === 60 * 60 * 24 * 7, 'Admin session cookie lasts 7 days (renewable, not unbounded)');
+
+  // 5b. Session persists across reload (cookie is persistent, not browser-session)
+  assert(customerOpts.maxAge > 0 || customerOpts.maxAge === null, 'Persistent cookie (no expire-on-close)');
+
+  // 5c. Session version matching
+  const matching = auth.sessionMatchesUser(session, userWithVersion);
+  assert(matching === true, 'Fresh token matches the user session version');
+
+  userWithVersion.tokenVersion = 1; // logout bumped the version
+  const stale = auth.sessionMatchesUser(session, userWithVersion);
+  assert(stale === false, 'Old token no longer matches after logout bumps tokenVersion');
+
+  const rejectedUser = { ...userWithVersion, tokenVersion: 2 };
+  assert(auth.sessionMatchesUser(session, rejectedUser) === false, 'Any mismatched session version is rejected');
+
+  // 5d. getCurrentUser rejects the invalidated token server-side
+  tokenCookieHolder.token = token; // simulate the still-present old cookie
+  const currentUser = await auth.getCurrentUser();
+  assert(currentUser === null, 'Server-side getCurrentUser returns null for a logged-out token');
+
+  // 5e. Expired token is invalid
+  const { SignJWT: SJ } = require('jose');
+  const secret = new TextEncoder().encode('dar-el-asal-olive-secure-secret-key-2026-production');
+  const expired = await new SJ({ userId: userWithVersion.id, role: 'customer' })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt(Math.floor(Date.now() / 1000) - 7200)
+    .setExpirationTime(Math.floor(Date.now() / 1000) - 3600)
+    .sign(secret);
+  const expiredSession = await auth.verifySessionToken(expired);
+  assert(expiredSession === null, 'Expired session token is rejected');
+  assert(await auth.verifySessionToken('garbage.token.value') === null, 'Tampered token is rejected');
+  const preGarbageUser = await auth.getCurrentUser();
+  tokenCookieHolder.token = 'garbage.token.value';
+  assert((await auth.getCurrentUser()) === null, 'Garbage cookie yields no user server-side');
+
+  console.log('\n====================================================');
+  console.log(`Result: ${passCount} passed, ${failCount} failed`);
+  console.log('====================================================');
+  if (failCount > 0) process.exit(1);
+})();

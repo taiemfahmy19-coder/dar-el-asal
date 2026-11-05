@@ -139,14 +139,8 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label htmlFor="login-password" className="font-semibold text-[#1d1d1f]">كلمة المرور</label>
-              <Link
-                href="/auth/forgot-password"
-                className="text-[11px] text-[#c59b27] hover:underline font-semibold"
-              >
-                نسيت كلمة المرور؟
-              </Link>
+            <div className="mb-1.5">
+              <label htmlFor="login-password" className="block font-semibold text-[#1d1d1f]">كلمة المرور</label>
             </div>
             <div className="relative">
               <input

@@ -31,11 +31,23 @@ export async function createSessionToken(user: User): Promise<string> {
     email: user.email,
     role: user.role,
     name: user.name,
+    // Session version: incremented on logout so every previously issued
+    // token becomes invalid server-side, not merely cookie-removed.
+    sv: user.tokenVersion || 0,
   })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
-    .setExpirationTime('7d')
+    .setExpirationTime(`${sessionMaxAgeSeconds(user.role)}s`)
     .sign(JWT_SECRET);
+}
+
+/** True only when the token was issued against the user's current session version. */
+export function sessionMatchesUser(
+  session: SessionPayload | null,
+  user: User | null | undefined
+): boolean {
+  if (!session || !user) return false;
+  return (session as { sv?: number }).sv === (user.tokenVersion || 0);
 }
 
 export async function verifySessionToken(token: string): Promise<SessionPayload | null> {
@@ -58,6 +70,9 @@ export async function getCurrentUser(): Promise<User | null> {
 
     const user = getUserById(session.userId);
     if (!user || user.status === 'suspended') return null;
+
+    // Reject tokens whose session version no longer matches (e.g. after logout)
+    if (!sessionMatchesUser(session, user)) return null;
 
     return user;
   } catch (err) {
@@ -85,6 +100,23 @@ export async function requireAuth(allowedRoles?: UserRole[]): Promise<{
   }
 
   return { user, authorized: true };
+}
+
+/** Long-lived "remember me" session: renewed (sliding window) from /api/auth/me.
+ *  Customer: 30 days (renewed on each visit).
+ *  Admin:    7 days (safe renewable window, never unbounded). */
+export function sessionMaxAgeSeconds(role?: UserRole): number {
+  return role === 'admin' ? 60 * 60 * 24 * 7 : 60 * 60 * 24 * 30;
+}
+
+export function sessionCookieOptionsFor(user: User) {
+  return {
+    name: COOKIE_NAME,
+    options: {
+      ...AUTH_COOKIE_OPTIONS.options,
+      maxAge: sessionMaxAgeSeconds(user.role),
+    },
+  };
 }
 
 export const AUTH_COOKIE_OPTIONS = {
