@@ -116,8 +116,9 @@ function ProductsContent() {
           </p>
         </div>
 
-        {/* Top Controls Bar Bento */}
-        <div className="card p-4 border border-[#d2d2d7]/50 mb-8 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 !rounded-[18px]">
+        {/* Top Controls Bar Bento — sticks under the header on mobile so the
+            search and filters remain reachable while scrolling the list */}
+        <div className="card p-4 border border-[#d2d2d7]/50 mb-8 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 !rounded-[18px] sticky top-16 sm:top-20 md:static z-30">
           
           <div className="relative flex-1 max-w-md">
             <input

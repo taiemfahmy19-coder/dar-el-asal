@@ -9,6 +9,7 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import FloatingMobileCartBar from '@/components/cart/FloatingMobileCartBar';
 import MobileBottomBar from '@/components/layout/MobileBottomBar';
+import BackToTop from '@/components/layout/BackToTop';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -63,6 +64,7 @@ export default function RootLayout({
               <Footer />
               <FloatingMobileCartBar />
               <MobileBottomBar />
+              <BackToTop />
             </WishlistProvider>
           </CartProvider>
         </AuthProvider>
