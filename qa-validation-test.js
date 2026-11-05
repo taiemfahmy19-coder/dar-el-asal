@@ -253,6 +253,86 @@ const auth = loadTs(path.join(root, 'src', 'lib', 'auth.ts'), {
   tokenCookieHolder.token = 'garbage.token.value';
   assert((await auth.getCurrentUser()) === null, 'Garbage cookie yields no user server-side');
 
+  // ============ 6. SERVER-side gate on the real API route handler ============
+  // Runs the real src/app/api/orders/route.ts POST with an isolated in-memory
+  // database and a spy on createOrderServerSide — production is never touched.
+  let engineCalls = 0;
+  const route = loadTs(path.join(root, 'src', 'app', 'api', 'orders', 'route.ts'), {
+    '@/lib/auth': {
+      getCurrentUser: async () => null,
+      requireAuth: async () => ({ user: null, authorized: false }),
+    },
+    '@/lib/db': {
+      getOrders: () => [],
+      syncCloudDb: async () => {},
+      syncCloudDbPush: async () => {},
+      getDb: () => ({ orders: [], users: [] }),
+    },
+    '@/lib/validation': validation,
+    '@/lib/utils': utils,
+    '@/lib/order-engine': {
+      createOrderServerSide: (input) => {
+        engineCalls += 1;
+        return { success: true, order: { id: 'ord-spy', customerPhone: input.customerPhone, customerEmail: input.customerEmail, totalCost: 0, estimatedProfit: 0, items: [] } };
+      },
+    },
+    '@/lib/types': {},
+    'next/server': {
+      NextRequest: class NextRequestShim {},
+      NextResponse: class NextResponseShim {
+        static json(body, init) { return { body, _status: init && init.status ? init.status : 200, _init: init || {} }; }
+      },
+    },
+  });
+
+  const doPost = (payload) => route.POST({ json: async () => payload });
+  const okBody = JSON.parse(JSON.stringify(validBody));
+
+  // 6a. Phone '123' must be rejected by the SERVER and never reach the engine
+  engineCalls = 0;
+  const badPhoneRoute = await doPost({ ...okBody, customerPhone: '123' });
+  assert(badPhoneRoute._status === 400, "Server API rejects phone '123' with HTTP 400");
+  assert((badPhoneRoute.body.error || '').includes('11'), "Server rejection for '123' carries the Arabic 11-digit message");
+  assert(engineCalls === 0, "Phone '123' never reaches the order engine (no order is saved)");
+
+  // 6b. 10-digit and 12-digit and non-Egyptian numbers rejected by the server
+  for (const [label, phoneValue] of [['10-digit server test', '0101234567'], ['12-digit server test', '010123456789'], ['non-Egyptian server test', '966570207883']]) {
+    engineCalls = 0;
+    const resp = await doPost({ ...okBody, customerPhone: phoneValue });
+    assert(resp._status === 400, `Server API rejects a ${label} with HTTP 400`);
+    assert(engineCalls === 0, `${label} never reaches the order engine`);
+  }
+
+  // 6c. Wrong email rejected by the server
+  engineCalls = 0;
+  const badEmailRoute = await doPost({ ...okBody, customerEmail: 'nope@@x' });
+  assert(badEmailRoute._status === 400, 'Server API rejects a wrong email with HTTP 400');
+  assert(engineCalls === 0, 'Wrong email never reaches the order engine');
+
+  // 6d. Empty cart rejected by the server
+  engineCalls = 0;
+  const emptyCartRoute = await doPost({ ...okBody, items: [] });
+  assert(emptyCartRoute._status === 400, 'Server API rejects an empty cart with HTTP 400');
+  assert(engineCalls === 0, 'Empty cart never reaches the order engine');
+
+  // 6e. Unsupported governorate rejected by the server
+  engineCalls = 0;
+  const badGovRoute = await doPost({ ...okBody, governorate: 'القاهرة' });
+  assert(badGovRoute._status === 400, 'Server API rejects an unsupported governorate with HTTP 400');
+  assert(engineCalls === 0, 'Unsupported governorate never reaches the order engine');
+
+  // 6f. A fully valid submission creates exactly ONE order (engine called once)
+  engineCalls = 0;
+  const goodRoute = await doPost(okBody);
+  assert(goodRoute._status === 200, 'A fully valid submission succeeds with HTTP 200');
+  assert(engineCalls === 1, 'A valid submission creates exactly one order (engine invoked exactly once)');
+
+  // 6g. Arabic digits are unified server-side before saving
+  engineCalls = 0;
+  const arabicRoute = await doPost({ ...okBody, customerPhone: '٠١٥١٢٣٤٥٦٧٨' });
+  assert(arabicRoute._status === 200, 'Arabic-digit phone passes the server gate');
+  assert(engineCalls === 1, 'Arabic-digit phone reaches the engine exactly once');
+
   console.log('\n====================================================');
   console.log(`Result: ${passCount} passed, ${failCount} failed`);
   console.log('====================================================');

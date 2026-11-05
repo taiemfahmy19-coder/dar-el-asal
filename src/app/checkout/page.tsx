@@ -263,8 +263,13 @@ export default function CheckoutPage() {
                   <input
                     id="checkout-phone"
                     type="tel"
-                    inputMode="numeric"
+                    inputMode="tel"
+                    autoComplete="tel-national"
                     required
+                    minLength={11}
+                    maxLength={11}
+                    pattern="01[0-9]{9}"
+                    title="رقم هاتف مصري من 11 رقمًا يبدأ بـ010 أو 011 أو 012 أو 015"
                     value={phone}
                     onChange={(e) => {
                       setPhone(e.target.value);
