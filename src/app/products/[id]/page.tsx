@@ -36,6 +36,18 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true);
   const [addedAnimation, setAddedAnimation] = useState(false);
   const [zoomOpen, setZoomOpen] = useState(false);
+  // Fullscreen image viewer: closes on Esc / background click. Hooks are
+  // declared unconditionally here (before any early return below).
+  React.useEffect(() => {
+    if (!zoomOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setZoomOpen(false); };
+    window.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    };
+  }, [zoomOpen]);
 
   const handleBuyNow = () => {
     if (!product || product.status === 'UNAVAILABLE') return;
@@ -88,18 +100,7 @@ export default function ProductDetailPage() {
     );
   }
 
-  const favorited = isFavorite(product.id);
-  // Fullscreen image viewer: closes on Esc / background click.
-  React.useEffect(() => {
-    if (!zoomOpen) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setZoomOpen(false); };
-    window.addEventListener('keydown', onKey);
-    document.body.style.overflow = 'hidden';
-    return () => {
-      window.removeEventListener('keydown', onKey);
-      document.body.style.overflow = '';
-    };
-  }, [zoomOpen]);
+  const favorited = product ? isFavorite(product.id) : false;
   const discountPercent =
     product.originalPrice && product.originalPrice > product.price
       ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
