@@ -39,3 +39,4 @@ gist-snapshot-*.json
 gist-revision-*.json
 git-tracked-data.json
 qa-gist-*.json
+qa-debug-*.compiled.js
