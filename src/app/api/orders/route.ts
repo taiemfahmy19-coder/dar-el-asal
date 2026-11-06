@@ -3,6 +3,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { isGovernorateSupported } from '@/lib/utils';
 import { validateNewOrderPayload } from '@/lib/validation';
 import { getOrders, syncCloudDb, syncCloudDbPush, getDb } from '@/lib/db';
+import { verifyCaptchaAnswer, CAPTCHA_ERROR_MESSAGE } from '@/lib/captcha';
 import { createOrderServerSide } from '@/lib/order-engine';
 import { OrderStatus } from '@/lib/types';
 
@@ -72,6 +73,22 @@ export async function POST(req: NextRequest) {
       );
     }
     const input = check.normalized;
+
+    // ---- Human-verification gate (last gate before the engine) ----
+    // A valid field payload still needs a correct answer to a signed,
+    // short-lived arithmetic challenge — blocks scripted fake-order bots.
+    const captchaOk = await verifyCaptchaAnswer(
+      typeof body.captchaToken === 'string' ? body.captchaToken : '',
+      typeof body.captchaAnswer === 'string' || typeof body.captchaAnswer === 'number'
+        ? body.captchaAnswer
+        : ''
+    );
+    if (!captchaOk) {
+      return NextResponse.json(
+        { error: CAPTCHA_ERROR_MESSAGE, errors: { captcha: CAPTCHA_ERROR_MESSAGE } },
+        { status: 400 }
+      );
+    }
 
     const result = createOrderServerSide({
       userId: currentUser?.id,

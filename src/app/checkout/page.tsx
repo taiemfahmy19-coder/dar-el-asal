@@ -23,6 +23,7 @@ import {
 } from '@/lib/validation';
 
 interface CheckoutFieldErrors {
+  captcha?: string;
   fullName?: string;
   phone?: string;
   email?: string;
@@ -59,6 +60,22 @@ export default function CheckoutPage() {
   const [fieldErrors, setFieldErrors] = useState<CheckoutFieldErrors>({});
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
   const submittingRef = React.useRef(false);
+
+  // ---- Human verification (arithmetic challenge, server-signed) ----
+  const [captcha, setCaptcha] = useState<{ question: string; token: string } | null>(null);
+  const [captchaAnswer, setCaptchaAnswer] = useState('');
+  const loadCaptcha = React.useCallback(() => {
+    fetch('/api/captcha')
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.question && d?.token) {
+          setCaptcha({ question: d.question, token: d.token });
+          setCaptchaAnswer('');
+        }
+      })
+      .catch(() => setCaptcha(null));
+  }, []);
+  React.useEffect(() => { loadCaptcha(); }, [loadCaptcha]);
 
   /** Runs client-side validation near the browser; the API re-runs the
       full server-side gate, so this can never be the only layer. */
@@ -142,6 +159,12 @@ export default function CheckoutPage() {
       return;
     }
 
+    if (!captcha) { setError('تعذر تحميل سؤال التحقق، حاول مرة أخرى بعد لحظات.'); loadCaptcha(); return; }
+    if (!captchaAnswer.trim()) {
+      setError('من فضلك أجب على سؤال التحقق البسيط الموجود أسفل النموذج.');
+      return;
+    }
+
     setLoading(true);
     submittingRef.current = true;
 
@@ -158,6 +181,8 @@ export default function CheckoutPage() {
         deliveryDate,
         deliveryTimeWindow,
         paymentMethod: 'COD',
+        captchaToken: captcha?.token,
+        captchaAnswer: captchaAnswer.trim(),
         items: items.map((i) => ({
           productId: i.product.id,
           quantity: i.quantity,
@@ -176,6 +201,10 @@ export default function CheckoutPage() {
         setError(data.error || 'فشل إرسال طلب رغبة الشراء، يرجى المحاولة مرة أخرى');
         if (data.errors) {
           setFieldErrors((prev) => ({ ...prev, ...data.errors }));
+        }
+        // A failed human-verification answer always comes with a fresh question.
+        if (data.errors?.captcha || (typeof data.error === 'string' && data.error.includes('تحقق'))) {
+          loadCaptcha();
         }
         setLoading(false);
         submittingRef.current = false;
@@ -555,6 +584,34 @@ export default function CheckoutPage() {
                 <p className="text-[10px] text-[#515154] leading-relaxed pt-1">
                   الأسعار ورسوم التوصيل تقديرية وتُثبت في عرض السعر النهائي بعد تأكيد توفر المنتجات وعنوان الاستلام.
                 </p>
+              </div>
+
+              {/* Human-verification: signed arithmetic challenge */}
+              <div className="space-y-1.5">
+                <label htmlFor="checkout-captcha" className="block text-xs font-semibold text-[#1d1d1f]">
+                  تحقق سريع لإثبات أنك شخص حقيقي {captcha ? `: كم يساوي ${captcha.question}؟` : '(يتم تحميل السؤال...)'}
+                </label>
+                <input
+                  id="checkout-captcha"
+                  type="text"
+                  dir="ltr"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  aria-describedby={fieldErrors.captcha ? 'checkout-captcha-error' : undefined}
+                  aria-invalid={!!fieldErrors.captcha}
+                  value={captchaAnswer}
+                  onChange={(e) => {
+                    setCaptchaAnswer(e.target.value);
+                    if (attemptedSubmit) updateError('captcha', undefined);
+                  }}
+                  placeholder="مثال: 9"
+                  className={`w-full px-3.5 py-3 rounded-[12px] bg-[#f5f5f7] border ${fieldErrors.captcha ? 'border-rose-500' : 'border-[#d2d2d7]/80'} focus:outline-none focus:border-[#0071e3] focus:ring-4 focus:ring-blue-500/15 text-right text-[#1d1d1f]`}
+                />
+                {fieldErrors.captcha && (
+                  <p id="checkout-captcha-error" role="alert" className="text-xs text-rose-600 font-medium">
+                    {fieldErrors.captcha}
+                  </p>
+                )}
               </div>
 
               {/* Submit CTA */}

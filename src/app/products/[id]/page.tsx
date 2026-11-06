@@ -12,6 +12,7 @@ import {
   Truck,
   Check,
   Clock,
+  X,
 } from 'lucide-react';
 import { Product, Review } from '@/lib/types';
 import { formatPrice } from '@/lib/utils';
@@ -34,6 +35,7 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
   const [addedAnimation, setAddedAnimation] = useState(false);
+  const [zoomOpen, setZoomOpen] = useState(false);
 
   const handleBuyNow = () => {
     if (!product || product.status === 'UNAVAILABLE') return;
@@ -87,6 +89,17 @@ export default function ProductDetailPage() {
   }
 
   const favorited = isFavorite(product.id);
+  // Fullscreen image viewer: closes on Esc / background click.
+  React.useEffect(() => {
+    if (!zoomOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setZoomOpen(false); };
+    window.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    };
+  }, [zoomOpen]);
   const discountPercent =
     product.originalPrice && product.originalPrice > product.price
       ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
@@ -118,13 +131,21 @@ export default function ProductDetailPage() {
             
             {/* Gallery Column */}
             <div className="lg:col-span-6 space-y-4">
-              <div className="relative aspect-[16/11] sm:aspect-square w-full rounded-[16px] overflow-hidden bg-[#fbf9f4] border border-[#d2d2d7]/50 shadow-sm p-2 sm:p-4 flex items-center justify-center">
+              <div className="relative group aspect-[16/11] sm:aspect-square w-full rounded-[16px] overflow-hidden bg-[#fbf9f4] border border-[#d2d2d7]/50 shadow-sm p-2 sm:p-4 flex items-center justify-center">
                 <Image
                   src={product.images[selectedImageIndex] || product.images[0]}
                   alt={product.name}
                   fill
                   priority
-                  className="object-contain sm:object-cover object-center rounded-[12px]"
+                  className="object-contain sm:object-cover object-center rounded-[12px] transition-transform duration-300 group-hover:scale-[1.05]"
+                />
+
+                {/* Zoom trigger */}
+                <button
+                  type="button"
+                  onClick={() => setZoomOpen(true)}
+                  aria-label="تكبير صورة المنتج"
+                  className="absolute inset-0 z-0 cursor-zoom-in"
                 />
 
                 {/* Wishlist Button */}
@@ -362,6 +383,35 @@ export default function ProductDetailPage() {
         )}
 
       </div>
+
+      {/* Fullscreen image viewer (Esc or click to close) */}
+      {zoomOpen && product?.images?.length ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="عرض الصورة بحجم كامل"
+          onClick={() => setZoomOpen(false)}
+          className="fixed inset-0 z-[60] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 sm:p-10 cursor-zoom-out"
+        >
+          <button
+            type="button"
+            onClick={() => setZoomOpen(false)}
+            aria-label="إغلاق العرض"
+            className="absolute top-4 left-4 w-10 h-10 rounded-full bg-white/90 text-[#1d1d1f] border border-[#d2d2d7]/60 flex items-center justify-center shadow-md"
+          >
+            <X className="w-5 h-5" />
+          </button>
+          <div className="relative w-full h-full max-w-4xl">
+            <Image
+              src={product.images[selectedImageIndex] || product.images[0]}
+              alt={product.name}
+              fill
+              className="object-contain"
+              sizes="100vw"
+            />
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

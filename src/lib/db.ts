@@ -203,6 +203,12 @@ export function getDb(): DatabaseState {
   return inMemoryDb;
 }
 
+// 2026-11-06 anti-wipe guard: remember the last cloud-observed orders count so
+// no code path can quietly overwrite a non-empty cloud order list with an
+// empty one (this exact failure mode once wiped the production orders from a
+// cold serverless instance pushing a stale local file).
+let lastSeenCloudOrdersCount: number | null = null;
+
 export async function syncCloudDb(force: boolean = false): Promise<DatabaseState> {
   const now = Date.now();
   if (!force && inMemoryDb && now - lastCloudSyncTime < SYNC_CACHE_TTL) {
@@ -226,6 +232,7 @@ export async function syncCloudDb(force: boolean = false): Promise<DatabaseState
         if (remoteDb && Array.isArray(remoteDb.products)) {
           inMemoryDb = remoteDb;
           lastCloudSyncTime = now;
+          lastSeenCloudOrdersCount = Array.isArray(remoteDb.orders) ? remoteDb.orders.length : 0;
           try {
             fs.writeFileSync(FALLBACK_TMP_FILE, JSON.stringify(remoteDb, null, 2), 'utf-8');
           } catch {}
@@ -241,6 +248,23 @@ export async function syncCloudDb(force: boolean = false): Promise<DatabaseState
 }
 
 export async function syncCloudDbPush(state: DatabaseState): Promise<void> {
+  // WIPE-GUARD: a push that would clear a non-empty cloud order list is
+  // refused unless the instance has actually pulled the cloud first and the
+  // cloud itself is empty. Customer order data may never be auto-destroyed.
+  const incomingCount = Array.isArray(state.orders) ? state.orders.length : 0;
+  if (lastSeenCloudOrdersCount === null && CLOUD_GIST_ID) {
+    // Unknown cloud state: pull before writing (best effort, fail-open).
+    try { await syncCloudDb(true); } catch {}
+  }
+  if (incomingCount === 0 && (lastSeenCloudOrdersCount ?? 0) > 0) {
+    console.error(
+      'WIPE-GUARD: refused push of an empty orders list over a non-empty cloud DB (',
+      lastSeenCloudOrdersCount,
+      'orders were live). Nothing was written to the cloud.'
+    );
+    return;
+  }
+
   inMemoryDb = state;
   lastCloudSyncTime = Date.now();
 
@@ -260,6 +284,7 @@ export async function syncCloudDbPush(state: DatabaseState): Promise<void> {
         },
       }),
     });
+    lastSeenCloudOrdersCount = incomingCount;
   } catch (err) {
     console.warn('Cloud DB sync push error:', err);
   }

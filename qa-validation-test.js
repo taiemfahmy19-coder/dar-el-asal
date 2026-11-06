@@ -257,6 +257,18 @@ const auth = loadTs(path.join(root, 'src', 'lib', 'auth.ts'), {
   // Runs the real src/app/api/orders/route.ts POST with an isolated in-memory
   // database and a spy on createOrderServerSide — production is never touched.
   let engineCalls = 0;
+  // Real captcha library (no mock): challenges are signed with the app secret
+  // so the same signing/verification path as production is exercised.
+  const captchaLib = loadTs(path.join(root, 'src', 'lib', 'captcha.ts'), {});
+
+  async function validChallenge() {
+    const ch = await captchaLib.createCaptchaChallenge();
+    // Solve the arithmetic question locally (it is only "+ or ×" of 2..9).
+    const [a, op, b] = ch.question.split(' ');
+    const answer = op === '+' ? Number(a) + Number(b) : Number(a) * Number(b);
+    return { token: ch.token, answer: String(answer) };
+  }
+
   const route = loadTs(path.join(root, 'src', 'app', 'api', 'orders', 'route.ts'), {
     '@/lib/auth': {
       getCurrentUser: async () => null,
@@ -270,6 +282,7 @@ const auth = loadTs(path.join(root, 'src', 'lib', 'auth.ts'), {
     },
     '@/lib/validation': validation,
     '@/lib/utils': utils,
+    '@/lib/captcha': captchaLib,
     '@/lib/order-engine': {
       createOrderServerSide: (input) => {
         engineCalls += 1;
@@ -321,15 +334,38 @@ const auth = loadTs(path.join(root, 'src', 'lib', 'auth.ts'), {
   assert(badGovRoute._status === 400, 'Server API rejects an unsupported governorate with HTTP 400');
   assert(engineCalls === 0, 'Unsupported governorate never reaches the order engine');
 
+  // 6c-b. Valid fields + MISSING captcha → rejected at the human-verification gate
+  engineCalls = 0;
+  const noCaptchaRoute = await doPost(okBody);
+  assert(noCaptchaRoute._status === 400, 'Server rejects a fully valid payload without human verification (captcha required)');
+  assert((noCaptchaRoute.body.error || '').includes('تحقق'), 'Missing captcha returns the Arabic human-verification message');
+  assert(engineCalls === 0, 'Missing captcha never reaches the order engine');
+
+  // 6c-c. Valid fields + WRONG captcha answer → rejected, fresh tokens never reusable
+  engineCalls = 0;
+  const ch = await captchaLib.createCaptchaChallenge();
+  const wrongRoute = await doPost({ ...okBody, captchaToken: ch.token, captchaAnswer: '999' });
+  assert(wrongRoute._status === 400, 'Server rejects a wrong captcha answer with HTTP 400');
+  assert(engineCalls === 0, 'Wrong captcha never reaches the order engine');
+
+  // 6c-d. Forged token (not signed by the server) → rejected
+  engineCalls = 0;
+  const forgedRoute = await doPost({ ...okBody, captchaToken: 'forged.token.value', captchaAnswer: '3' });
+  assert(forgedRoute._status === 400, 'Server rejects a forged captcha token with HTTP 400');
+  assert(engineCalls === 0, 'Forged captcha token never reaches the order engine');
+
   // 6f. A fully valid submission creates exactly ONE order (engine called once)
   engineCalls = 0;
-  const goodRoute = await doPost(okBody);
-  assert(goodRoute._status === 200, 'A fully valid submission succeeds with HTTP 200');
+  let solved = await validChallenge();
+  const goodRoute = await doPost({ ...okBody, captchaToken: solved.token, captchaAnswer: solved.answer });
+  assert(goodRoute._status === 200, 'A fully valid submission with a correct captcha succeeds with HTTP 200');
   assert(engineCalls === 1, 'A valid submission creates exactly one order (engine invoked exactly once)');
 
+  // Aramaic 6g**
   // 6g. Arabic digits are unified server-side before saving
   engineCalls = 0;
-  const arabicRoute = await doPost({ ...okBody, customerPhone: '٠١٥١٢٣٤٥٦٧٨' });
+  solved = await validChallenge();
+  const arabicRoute = await doPost({ ...okBody, customerPhone: '٠١٥١٢٣٤٥٦٧٨', captchaToken: solved.token, captchaAnswer: solved.answer });
   assert(arabicRoute._status === 200, 'Arabic-digit phone passes the server gate');
   assert(engineCalls === 1, 'Arabic-digit phone reaches the engine exactly once');
 
@@ -368,6 +404,61 @@ const auth = loadTs(path.join(root, 'src', 'lib', 'auth.ts'), {
     assert(userWithVersion.tokenVersion === 2, 'Logout bumps tokenVersion server-side (1 -> 2)');
     assert(callOrder[0] === 'pull' && callOrder.includes('push'), 'Logout pulls the cloud DB before pushing (destroy-safe order)');
     assert(pushedOrders === 3, 'Logout push carries the full pulled state (orders preserved, not a stale local copy)');
+  }
+
+  // ============ 7. Login brute-force rate limit (real route, isolated mocks) ============
+  {
+    const loginRoute = loadTs(path.join(root, 'src', 'app', 'api', 'auth', 'login', 'route.ts'), {
+      '@/lib/db': {
+        getUserByEmail: (email) => (email === 'real@example.test'
+          ? { id: 'u-real', role: 'customer', status: 'active', passwordHash: bcrypt.hashSync('right-pass', 10) }
+          : null),
+      },
+      '@/lib/auth': {
+        comparePassword: async (pw) => pw === 'right-pass',
+        createSessionToken: async () => 'tok',
+        sessionCookieOptionsFor: () => ({ name: 'sid', options: {} }),
+      },
+      'next/server': {
+        NextRequest: class NextRequestShim {},
+        NextResponse: class NextResponseShim {
+          constructor() { this.cookies = { set: () => {} }; }
+          static json(body, init) {
+            const instance = new this();
+            instance.body = body; instance._status = init && init.status ? init.status : 200;
+            return instance;
+          }
+        },
+      },
+    });
+    const loginPost = (email, password) => loginRoute.POST({
+      json: async () => ({ email, password }),
+      headers: { get: () => null },
+      cookies: { get: () => null },
+    });
+    let last = null;
+    for (let i = 1; i <= 5; i++) {
+      last = await loginPost('nobody@example.test', 'wrong-pass');
+      assert(last._status === 401, `Wrong password attempt #${i} still returns 401 (limited, not blocked early)`);
+    }
+    const locked = await loginPost('nobody@example.test', 'wrong-pass');
+    assert(locked._status === 429, '6th failed attempt is rate-limited with HTTP 429');
+    assert((locked.body.error || '').includes('دقيقة'), 'Rate-limit message tells the Arabic minutes');
+    // Correct credentials for ANOTHER key still work
+    const good = await loginPost('real@example.test', 'right-pass');
+    assert(good._status === 200, 'A different identity key is not affected by the lock');
+  }
+
+  // ============ 8. Captcha library itself (sign / verify / Arabic digits) ============
+  {
+    const ch = await captchaLib.createCaptchaChallenge();
+    const [a, op, b] = ch.question.split(' ');
+    const right = op === '+' ? Number(a) + Number(b) : Number(a) * Number(b);
+    const arabicRight = String(right).replace(/[0-9]/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
+    assert(await captchaLib.verifyCaptchaAnswer(ch.token, String(right)) === true, 'Captcha accepts the correct answer');
+    assert(await captchaLib.verifyCaptchaAnswer(ch.token, arabicRight) === true, 'Captcha accepts the correct answer in Arabic-Indic digits');
+    assert(await captchaLib.verifyCaptchaAnswer(ch.token, String(right + 1)) === false, 'Captcha rejects a near-wrong answer');
+    assert(await captchaLib.verifyCaptchaAnswer('', String(right)) === false, 'Captcha rejects a missing token');
   }
 
   console.log('\n====================================================');
