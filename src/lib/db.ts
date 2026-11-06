@@ -295,12 +295,29 @@ export function saveDb(state: DatabaseState): void {
 
 export function resetDatabaseStatsAndOrders(): DatabaseState {
   const db = getDb();
-  db.orders = [];
-  db.auditLogs = [];
+  // SAFETY (2026-11-06): real customer orders are never destroyed by a stats
+  // reset. Only recalibratable counters are zeroed; the order history and the
+  // audit trail stay intact (the wipe killed 8 orders).
   if (db.courierProfiles) {
     db.courierProfiles.forEach((c) => {
       c.activeOrdersCount = 0;
     });
+  }
+  const log = {
+    id: `audit-${Date.now()}`,
+    userId: 'system-reset',
+    userName: 'النظام',
+    userRole: 'admin',
+    entityType: 'stats',
+    entityId: 'flags',
+    action: 'reset_admin_stats',
+    details: 'تم تصفير عدادات الإحصائيات فقط (الطلبات الحقيقية محفوظة)',
+    createdAt: new Date().toISOString(),
+  } as unknown as AuditLog;
+  if (Array.isArray(db.auditLogs)) {
+    db.auditLogs.push(log);
+  } else {
+    db.auditLogs = [log];
   }
   saveDb(db);
   return db;

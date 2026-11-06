@@ -80,7 +80,7 @@ export async function POST(req: Request) {
       await syncCloudDbPush(resetDb);
       return NextResponse.json({
         success: true,
-        message: 'تم تصفير كافة الأرباح والإحصائيات والطلبات بنجاح وبدء الحساب من الصفر (0)',
+        message: 'تم تصفير عدادات الإحصائيات بنجاح — الطلبات وسجل التدقيق محفوظة بالكامل',
       });
     }
 
