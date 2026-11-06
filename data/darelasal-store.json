@@ -47,6 +47,17 @@
       "avatarUrl": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
       "createdAt": "2026-02-01T12:00:00.000Z",
       "updatedAt": "2026-02-01T12:00:00.000Z"
+    },
+    {
+      "id": "user-1793607812262",
+      "name": "احمد",
+      "email": "taiemfahmy19@gmail.com",
+      "phone": "01147018367",
+      "passwordHash": "$2a$10$xxMWCxho3cOC8TyxC9zu1ONFMyf3VfOj3TgvLQIDHXXeObPvsk2D2",
+      "role": "customer",
+      "status": "active",
+      "createdAt": "2026-11-02T08:23:32.262Z",
+      "updatedAt": "2026-11-02T08:23:32.262Z"
     }
   ],
   "products": [
@@ -851,7 +862,503 @@
       "createdAt": "2026-01-05T00:00:00.000Z"
     }
   ],
-  "orders": [],
+  "orders": [
+    {
+      "id": "ord-1793902877738",
+      "orderNumber": "DO-2026-1008",
+      "customerName": "فحص واجهة برمجة",
+      "customerEmail": "nope@@x",
+      "customerPhone": "01012345678",
+      "governorate": "الإسكندرية",
+      "city": "سموحة",
+      "streetAddress": "عنوان فحص رقم 3",
+      "cancellationDeadline": "2026-11-06T18:21:17.738Z",
+      "quotationStatus": "NOT_ISSUED",
+      "subtotal": 480,
+      "deliveryFee": 55,
+      "totalAmount": 535,
+      "totalCost": 320,
+      "estimatedProfit": 160,
+      "paymentMethod": "COD",
+      "paymentStatus": "PENDING",
+      "orderStatus": "CANCELLED",
+      "supplierStatus": "CONFIRMED",
+      "items": [
+        {
+          "id": "item-1793902877738-73gu",
+          "orderId": "ord-1793902877738",
+          "productId": "prod-honey-creamed-nuts",
+          "productName": "عسل كريمي مخفوق فاخر بالمكسرات",
+          "productImage": "/images/honey/prod-honey-creamed.jpg",
+          "unitPrice": 480,
+          "costPrice": 320,
+          "quantity": 1,
+          "totalPrice": 480
+        }
+      ],
+      "statusHistory": [
+        {
+          "id": "hist-1793902877738",
+          "orderId": "ord-1793902877738",
+          "previousStatus": null,
+          "newStatus": "PENDING",
+          "changedByUserId": "guest",
+          "changedByName": "فحص واجهة برمجة",
+          "notes": "تم تسجيل طلب رغبة الشراء بنجاح وجارٍ مراجعته من الإدارة لتأكيد عرض السعر",
+          "createdAt": "2026-11-05T18:21:17.738Z"
+        },
+        {
+          "id": "hist-qa-cleanup2-1793903436512-0",
+          "orderId": "ord-1793902877738",
+          "previousStatus": "CANCELLED",
+          "newStatus": "CANCELLED",
+          "changedByUserId": null,
+          "changedByName": "ضبط الجودة (المسار الآمن للإدارة)",
+          "notes": "ألغاء طلب اختبار واجهة برمجية (بيانات اختبار فقط)",
+          "createdAt": "2026-11-05T18:30:36.511Z"
+        }
+      ],
+      "createdAt": "2026-11-05T18:21:17.738Z",
+      "updatedAt": "2026-11-05T18:30:36.511Z",
+      "cancelReason": "طلب اختبار واجهة برمجية أنشئ أثناء فحص الإنتاج يوم 2026-11-05 — أُلغي وليس طلبًا حقيقيًا",
+      "notes": "[TEST ORDER — QA probe, cancelled]"
+    },
+    {
+      "id": "ord-1793902876837",
+      "orderNumber": "DO-2026-1007",
+      "customerName": "فحص واجهة برمجة",
+      "customerEmail": "qa-probe@example.com",
+      "customerPhone": "0101234567",
+      "governorate": "الإسكندرية",
+      "city": "سموحة",
+      "streetAddress": "عنوان فحص رقم 3",
+      "cancellationDeadline": "2026-11-06T18:21:16.837Z",
+      "quotationStatus": "NOT_ISSUED",
+      "subtotal": 480,
+      "deliveryFee": 55,
+      "totalAmount": 535,
+      "totalCost": 320,
+      "estimatedProfit": 160,
+      "paymentMethod": "COD",
+      "paymentStatus": "PENDING",
+      "orderStatus": "CANCELLED",
+      "supplierStatus": "CONFIRMED",
+      "items": [
+        {
+          "id": "item-1793902876837-i64t",
+          "orderId": "ord-1793902876837",
+          "productId": "prod-honey-creamed-nuts",
+          "productName": "عسل كريمي مخفوق فاخر بالمكسرات",
+          "productImage": "/images/honey/prod-honey-creamed.jpg",
+          "unitPrice": 480,
+          "costPrice": 320,
+          "quantity": 1,
+          "totalPrice": 480
+        }
+      ],
+      "statusHistory": [
+        {
+          "id": "hist-1793902876837",
+          "orderId": "ord-1793902876837",
+          "previousStatus": null,
+          "newStatus": "PENDING",
+          "changedByUserId": "guest",
+          "changedByName": "فحص واجهة برمجة",
+          "notes": "تم تسجيل طلب رغبة الشراء بنجاح وجارٍ مراجعته من الإدارة لتأكيد عرض السعر",
+          "createdAt": "2026-11-05T18:21:16.837Z"
+        },
+        {
+          "id": "hist-qa-cleanup2-1793903436512-1",
+          "orderId": "ord-1793902876837",
+          "previousStatus": "CANCELLED",
+          "newStatus": "CANCELLED",
+          "changedByUserId": null,
+          "changedByName": "ضبط الجودة (المسار الآمن للإدارة)",
+          "notes": "ألغاء طلب اختبار واجهة برمجية (بيانات اختبار فقط)",
+          "createdAt": "2026-11-05T18:30:36.511Z"
+        }
+      ],
+      "createdAt": "2026-11-05T18:21:16.837Z",
+      "updatedAt": "2026-11-05T18:30:36.511Z",
+      "cancelReason": "طلب اختبار واجهة برمجية أنشئ أثناء فحص الإنتاج يوم 2026-11-05 — أُلغي وليس طلبًا حقيقيًا",
+      "notes": "[TEST ORDER — QA probe, cancelled]"
+    },
+    {
+      "id": "ord-1793902875802",
+      "orderNumber": "DO-2026-1006",
+      "customerName": "فحص واجهة برمجة",
+      "customerEmail": "qa-probe@example.com",
+      "customerPhone": "123",
+      "governorate": "الإسكندرية",
+      "city": "سموحة",
+      "streetAddress": "عنوان فحص رقم 3",
+      "cancellationDeadline": "2026-11-06T18:21:15.802Z",
+      "quotationStatus": "NOT_ISSUED",
+      "subtotal": 480,
+      "deliveryFee": 55,
+      "totalAmount": 535,
+      "totalCost": 320,
+      "estimatedProfit": 160,
+      "paymentMethod": "COD",
+      "paymentStatus": "PENDING",
+      "orderStatus": "CANCELLED",
+      "supplierStatus": "CONFIRMED",
+      "items": [
+        {
+          "id": "item-1793902875802-7gcw",
+          "orderId": "ord-1793902875802",
+          "productId": "prod-honey-creamed-nuts",
+          "productName": "عسل كريمي مخفوق فاخر بالمكسرات",
+          "productImage": "/images/honey/prod-honey-creamed.jpg",
+          "unitPrice": 480,
+          "costPrice": 320,
+          "quantity": 1,
+          "totalPrice": 480
+        }
+      ],
+      "statusHistory": [
+        {
+          "id": "hist-1793902875802",
+          "orderId": "ord-1793902875802",
+          "previousStatus": null,
+          "newStatus": "PENDING",
+          "changedByUserId": "guest",
+          "changedByName": "فحص واجهة برمجة",
+          "notes": "تم تسجيل طلب رغبة الشراء بنجاح وجارٍ مراجعته من الإدارة لتأكيد عرض السعر",
+          "createdAt": "2026-11-05T18:21:15.802Z"
+        },
+        {
+          "id": "hist-qa-cleanup2-1793903436512-2",
+          "orderId": "ord-1793902875802",
+          "previousStatus": "CANCELLED",
+          "newStatus": "CANCELLED",
+          "changedByUserId": null,
+          "changedByName": "ضبط الجودة (المسار الآمن للإدارة)",
+          "notes": "ألغاء طلب اختبار واجهة برمجية (بيانات اختبار فقط)",
+          "createdAt": "2026-11-05T18:30:36.511Z"
+        }
+      ],
+      "createdAt": "2026-11-05T18:21:15.802Z",
+      "updatedAt": "2026-11-05T18:30:36.511Z",
+      "cancelReason": "طلب اختبار واجهة برمجية أنشئ أثناء فحص الإنتاج يوم 2026-11-05 — أُلغي وليس طلبًا حقيقيًا",
+      "notes": "[TEST ORDER — QA probe, cancelled]"
+    },
+    {
+      "id": "ord-1793902771094",
+      "orderNumber": "DO-2026-1005",
+      "customerName": "عميل اختبار واجهة برمجة",
+      "customerEmail": "qa@example.com",
+      "customerPhone": "123",
+      "governorate": "الإسكندرية",
+      "city": "سموحة",
+      "streetAddress": "عنوان اختبار رفض",
+      "cancellationDeadline": "2026-11-06T18:19:31.094Z",
+      "quotationStatus": "NOT_ISSUED",
+      "subtotal": 480,
+      "deliveryFee": 55,
+      "totalAmount": 535,
+      "totalCost": 320,
+      "estimatedProfit": 160,
+      "paymentMethod": "COD",
+      "paymentStatus": "PENDING",
+      "orderStatus": "CANCELLED",
+      "supplierStatus": "CONFIRMED",
+      "items": [
+        {
+          "id": "item-1793902771094-8r67",
+          "orderId": "ord-1793902771094",
+          "productId": "prod-honey-creamed-nuts",
+          "productName": "عسل كريمي مخفوق فاخر بالمكسرات",
+          "productImage": "/images/honey/prod-honey-creamed.jpg",
+          "unitPrice": 480,
+          "costPrice": 320,
+          "quantity": 1,
+          "totalPrice": 480
+        }
+      ],
+      "statusHistory": [
+        {
+          "id": "hist-1793902771094",
+          "orderId": "ord-1793902771094",
+          "previousStatus": null,
+          "newStatus": "PENDING",
+          "changedByUserId": "guest",
+          "changedByName": "عميل اختبار واجهة برمجة",
+          "notes": "تم تسجيل طلب رغبة الشراء بنجاح وجارٍ مراجعته من الإدارة لتأكيد عرض السعر",
+          "createdAt": "2026-11-05T18:19:31.094Z"
+        },
+        {
+          "id": "hist-qa-cleanup2-1793903436512-3",
+          "orderId": "ord-1793902771094",
+          "previousStatus": "CANCELLED",
+          "newStatus": "CANCELLED",
+          "changedByUserId": null,
+          "changedByName": "ضبط الجودة (المسار الآمن للإدارة)",
+          "notes": "ألغاء طلب اختبار واجهة برمجية (بيانات اختبار فقط)",
+          "createdAt": "2026-11-05T18:30:36.511Z"
+        }
+      ],
+      "createdAt": "2026-11-05T18:19:31.094Z",
+      "updatedAt": "2026-11-05T18:30:36.511Z",
+      "cancelReason": "طلب اختبار واجهة برمجية أنشئ أثناء فحص الإنتاج يوم 2026-11-05 — أُلغي وليس طلبًا حقيقيًا",
+      "notes": "[TEST ORDER — QA probe, cancelled]"
+    },
+    {
+      "id": "ord-1793710469382",
+      "orderNumber": "DO-2026-1004",
+      "userId": "user-admin-1",
+      "customerName": "عميل اختبار",
+      "customerEmail": "qa@example.com",
+      "customerPhone": "123",
+      "governorate": "الإسكندرية",
+      "city": "سموحة",
+      "streetAddress": "شارع اختبار 1",
+      "buildingDetails": "عمارة 1 شقة 2",
+      "notes": "اختبار تحقق فقط [TEST ORDER — cancelled by QA]",
+      "cancellationDeadline": "2026-11-04T12:54:29.382Z",
+      "quotationStatus": "NOT_ISSUED",
+      "subtotal": 310,
+      "deliveryFee": 55,
+      "totalAmount": 365,
+      "totalCost": 210,
+      "estimatedProfit": 100,
+      "paymentMethod": "COD",
+      "paymentStatus": "PENDING",
+      "orderStatus": "CANCELLED",
+      "supplierStatus": "CONFIRMED",
+      "items": [
+        {
+          "id": "item-1793710469382-pnyc",
+          "orderId": "ord-1793710469382",
+          "productId": "prod-honey-sesame",
+          "productName": "عسل بالسمسم البلدي المحمص",
+          "productImage": "/images/honey/prod-honey-sesame.jpg",
+          "unitPrice": 310,
+          "costPrice": 210,
+          "quantity": 1,
+          "totalPrice": 310
+        }
+      ],
+      "statusHistory": [
+        {
+          "id": "hist-1793710469382",
+          "orderId": "ord-1793710469382",
+          "previousStatus": null,
+          "newStatus": "PENDING",
+          "changedByUserId": "user-admin-1",
+          "changedByName": "عميل اختبار",
+          "notes": "تم تسجيل طلب رغبة الشراء بنجاح وجارٍ مراجعته من الإدارة لتأكيد عرض السعر",
+          "createdAt": "2026-11-03T12:54:29.382Z"
+        },
+        {
+          "id": "hist-qa-cleanup-1793902177103",
+          "orderId": "ord-1793710469382",
+          "previousStatus": "PENDING",
+          "newStatus": "CANCELLED",
+          "changedByUserId": null,
+          "changedByName": "ضبط الجودة (المسار الآمن للإدارة)",
+          "notes": "ألغاء طلب اختبار (بيانات اختبار فقط)",
+          "createdAt": "2026-11-05T18:09:37.102Z"
+        }
+      ],
+      "createdAt": "2026-11-03T12:54:29.382Z",
+      "updatedAt": "2026-11-05T18:09:37.102Z",
+      "cancelReason": "طلب اختبار — أُلغي كبيانات اختبار أثناء ضبط الجودة، وليس طلبًا حقيقيًا"
+    },
+    {
+      "id": "ord-1793710290338",
+      "orderNumber": "DO-2026-1003",
+      "customerName": "تيم",
+      "customerEmail": "taiemfahmy19@gmail.com",
+      "customerPhone": "01147018367",
+      "governorate": "الإسكندرية",
+      "city": "سموحه",
+      "streetAddress": "الهدايا",
+      "buildingDetails": "5",
+      "notes": "",
+      "cancellationDeadline": "2026-11-04T12:51:30.339Z",
+      "quotationStatus": "NOT_ISSUED",
+      "subtotal": 310,
+      "deliveryFee": 55,
+      "totalAmount": 365,
+      "totalCost": 210,
+      "estimatedProfit": 100,
+      "paymentMethod": "COD",
+      "paymentStatus": "PENDING",
+      "orderStatus": "PENDING",
+      "supplierStatus": "CONFIRMED",
+      "items": [
+        {
+          "id": "item-1793710290338-z5u9",
+          "orderId": "ord-1793710290338",
+          "productId": "prod-honey-sesame",
+          "productName": "عسل بالسمسم البلدي المحمص",
+          "productImage": "/images/honey/prod-honey-sesame.jpg",
+          "unitPrice": 310,
+          "costPrice": 210,
+          "quantity": 1,
+          "totalPrice": 310
+        }
+      ],
+      "statusHistory": [
+        {
+          "id": "hist-1793710290339",
+          "orderId": "ord-1793710290338",
+          "previousStatus": null,
+          "newStatus": "PENDING",
+          "changedByUserId": "guest",
+          "changedByName": "تيم",
+          "notes": "تم تسجيل طلب رغبة الشراء بنجاح وجارٍ مراجعته من الإدارة لتأكيد عرض السعر",
+          "createdAt": "2026-11-03T12:51:30.339Z"
+        }
+      ],
+      "createdAt": "2026-11-03T12:51:30.339Z",
+      "updatedAt": "2026-11-03T12:51:30.339Z"
+    },
+    {
+      "id": "ord-1793618767899",
+      "orderNumber": "DO-2026-1002",
+      "customerName": "شادي محمد توفيق",
+      "customerEmail": "shadytw22@gmail.com",
+      "customerPhone": "00966570207883",
+      "governorate": "الإسكندرية",
+      "city": "الهدايا الاسكندريه",
+      "streetAddress": "شارع مسجد الهدايا",
+      "buildingDetails": "20 شارع مسجد الهدايا الدور 3",
+      "notes": "",
+      "cancellationDeadline": "2026-11-03T11:26:07.899Z",
+      "quotationStatus": "NOT_ISSUED",
+      "subtotal": 590,
+      "deliveryFee": 55,
+      "totalAmount": 645,
+      "totalCost": 400,
+      "estimatedProfit": 190,
+      "paymentMethod": "COD",
+      "paymentStatus": "PENDING",
+      "orderStatus": "PREPARING",
+      "supplierStatus": "CONFIRMED",
+      "items": [
+        {
+          "id": "item-1793618767899-vgx0",
+          "orderId": "ord-1793618767899",
+          "productId": "prod-honey-sesame",
+          "productName": "عسل بالسمسم البلدي المحمص",
+          "productImage": "/images/honey/prod-honey-sesame.jpg",
+          "unitPrice": 310,
+          "costPrice": 210,
+          "quantity": 1,
+          "totalPrice": 310
+        },
+        {
+          "id": "item-1793618767899-buqu",
+          "orderId": "ord-1793618767899",
+          "productId": "prod-honey-eucalyptus",
+          "productName": "عسل الكافور (الكينيا) الطبيعي",
+          "productImage": "/images/honey/prod-honey-eucalyptus.jpg",
+          "unitPrice": 280,
+          "costPrice": 190,
+          "quantity": 1,
+          "totalPrice": 280
+        }
+      ],
+      "statusHistory": [
+        {
+          "id": "hist-1793618767899",
+          "orderId": "ord-1793618767899",
+          "previousStatus": null,
+          "newStatus": "PENDING",
+          "changedByUserId": "guest",
+          "changedByName": "شادي محمد توفيق",
+          "notes": "تم تسجيل طلب رغبة الشراء بنجاح وجارٍ مراجعته من الإدارة لتأكيد عرض السعر",
+          "createdAt": "2026-11-02T11:26:07.899Z"
+        },
+        {
+          "id": "hist-1793626301443",
+          "orderId": "ord-1793618767899",
+          "previousStatus": "PENDING",
+          "newStatus": "CONFIRMED",
+          "changedByUserId": "user-admin-1",
+          "changedByName": "شادي محمد توفيق (المالك والمدير العام)",
+          "notes": "تم تأكيد التوفر لدى المورد",
+          "createdAt": "2026-11-02T13:31:41.443Z"
+        },
+        {
+          "id": "hist-1793626306998",
+          "orderId": "ord-1793618767899",
+          "previousStatus": "CONFIRMED",
+          "newStatus": "PREPARING",
+          "changedByUserId": "user-admin-1",
+          "changedByName": "شادي محمد توفيق (المالك والمدير العام)",
+          "notes": "بدء تجهيز وتغليف المنتجات",
+          "createdAt": "2026-11-02T13:31:46.998Z"
+        }
+      ],
+      "createdAt": "2026-11-02T11:26:07.899Z",
+      "updatedAt": "2026-11-02T13:31:46.998Z"
+    },
+    {
+      "id": "ord-1793607858696",
+      "orderNumber": "DO-2026-1001",
+      "userId": "user-1793607812262",
+      "customerName": "احمد",
+      "customerEmail": "taiemfahmy19@gmail.com",
+      "customerPhone": "01147018367",
+      "governorate": "الإسكندرية",
+      "city": "Smoah",
+      "streetAddress": "احمد",
+      "buildingDetails": "تبتب",
+      "notes": "",
+      "cancellationDeadline": "2026-11-03T08:24:18.696Z",
+      "quotationStatus": "NOT_ISSUED",
+      "subtotal": 790,
+      "deliveryFee": 55,
+      "totalAmount": 845,
+      "totalCost": 530,
+      "estimatedProfit": 260,
+      "paymentMethod": "COD",
+      "paymentStatus": "PENDING",
+      "orderStatus": "PENDING",
+      "supplierStatus": "CONFIRMED",
+      "items": [
+        {
+          "id": "item-1793607858696-etg3",
+          "orderId": "ord-1793607858696",
+          "productId": "prod-honey-sesame",
+          "productName": "عسل بالسمسم البلدي المحمص",
+          "productImage": "/images/honey/prod-honey-sesame.jpg",
+          "unitPrice": 310,
+          "costPrice": 210,
+          "quantity": 1,
+          "totalPrice": 310
+        },
+        {
+          "id": "item-1793607858696-7gli",
+          "orderId": "ord-1793607858696",
+          "productId": "prod-honey-creamed-nuts",
+          "productName": "عسل كريمي مخفوق فاخر بالمكسرات",
+          "productImage": "/images/honey/prod-honey-creamed.jpg",
+          "unitPrice": 480,
+          "costPrice": 320,
+          "quantity": 1,
+          "totalPrice": 480
+        }
+      ],
+      "statusHistory": [
+        {
+          "id": "hist-1793607858696",
+          "orderId": "ord-1793607858696",
+          "previousStatus": null,
+          "newStatus": "PENDING",
+          "changedByUserId": "user-1793607812262",
+          "changedByName": "احمد",
+          "notes": "تم تسجيل طلب رغبة الشراء بنجاح وجارٍ مراجعته من الإدارة لتأكيد عرض السعر",
+          "createdAt": "2026-11-02T08:24:18.696Z"
+        }
+      ],
+      "createdAt": "2026-11-02T08:24:18.696Z",
+      "updatedAt": "2026-11-02T08:24:18.696Z"
+    }
+  ],
   "courierProfiles": [
     {
       "id": "courier-prof-1",
@@ -958,6 +1465,51 @@
   ],
   "notifications": [
     {
+      "id": "notif-1793902877741-user-admin-1",
+      "userId": "user-admin-1",
+      "title": "طلب جديد: DO-2026-1008",
+      "message": "طلب جديد بقيمة 535 ج.م من العميل فحص واجهة برمجة",
+      "link": "/admin/orders/ord-1793902877738",
+      "isRead": false,
+      "createdAt": "2026-11-05T18:21:17.738Z"
+    },
+    {
+      "id": "notif-1793902876841-user-admin-1",
+      "userId": "user-admin-1",
+      "title": "طلب جديد: DO-2026-1007",
+      "message": "طلب جديد بقيمة 535 ج.م من العميل فحص واجهة برمجة",
+      "link": "/admin/orders/ord-1793902876837",
+      "isRead": false,
+      "createdAt": "2026-11-05T18:21:16.837Z"
+    },
+    {
+      "id": "notif-1793902875806-user-admin-1",
+      "userId": "user-admin-1",
+      "title": "طلب جديد: DO-2026-1006",
+      "message": "طلب جديد بقيمة 535 ج.م من العميل فحص واجهة برمجة",
+      "link": "/admin/orders/ord-1793902875802",
+      "isRead": false,
+      "createdAt": "2026-11-05T18:21:15.802Z"
+    },
+    {
+      "id": "notif-1793902771098-user-admin-1",
+      "userId": "user-admin-1",
+      "title": "طلب جديد: DO-2026-1005",
+      "message": "طلب جديد بقيمة 535 ج.م من العميل عميل اختبار واجهة برمجة",
+      "link": "/admin/orders/ord-1793902771094",
+      "isRead": false,
+      "createdAt": "2026-11-05T18:19:31.094Z"
+    },
+    {
+      "id": "notif-1793618767903-user-admin-1",
+      "userId": "user-admin-1",
+      "title": "طلب جديد: DO-2026-1002",
+      "message": "طلب جديد بقيمة 645 ج.م من العميل شادي محمد توفيق",
+      "link": "/admin/orders/ord-1793618767899",
+      "isRead": false,
+      "createdAt": "2026-11-02T11:26:07.899Z"
+    },
+    {
       "id": "notif-1",
       "userId": "user-admin-1",
       "title": "طلب انضمام مندوب جديد",
@@ -985,7 +1537,85 @@
       "createdAt": "2026-10-25T11:32:00.000Z"
     }
   ],
-  "auditLogs": [],
+  "auditLogs": [
+    {
+      "id": "audit-1793902877745",
+      "userId": "guest",
+      "userName": "فحص واجهة برمجة",
+      "userRole": "customer",
+      "action": "CREATE_ORDER",
+      "entityType": "ORDER",
+      "entityId": "ord-1793902877738",
+      "details": "إنشاء الطلب رقم DO-2026-1008 بإجمالي 535 ج.م",
+      "createdAt": "2026-11-05T18:21:17.738Z"
+    },
+    {
+      "id": "audit-1793902876844",
+      "userId": "guest",
+      "userName": "فحص واجهة برمجة",
+      "userRole": "customer",
+      "action": "CREATE_ORDER",
+      "entityType": "ORDER",
+      "entityId": "ord-1793902876837",
+      "details": "إنشاء الطلب رقم DO-2026-1007 بإجمالي 535 ج.م",
+      "createdAt": "2026-11-05T18:21:16.837Z"
+    },
+    {
+      "id": "audit-1793902875809",
+      "userId": "guest",
+      "userName": "فحص واجهة برمجة",
+      "userRole": "customer",
+      "action": "CREATE_ORDER",
+      "entityType": "ORDER",
+      "entityId": "ord-1793902875802",
+      "details": "إنشاء الطلب رقم DO-2026-1006 بإجمالي 535 ج.م",
+      "createdAt": "2026-11-05T18:21:15.802Z"
+    },
+    {
+      "id": "audit-1793902771103",
+      "userId": "guest",
+      "userName": "عميل اختبار واجهة برمجة",
+      "userRole": "customer",
+      "action": "CREATE_ORDER",
+      "entityType": "ORDER",
+      "entityId": "ord-1793902771094",
+      "details": "إنشاء الطلب رقم DO-2026-1005 بإجمالي 535 ج.م",
+      "createdAt": "2026-11-05T18:19:31.094Z"
+    },
+    {
+      "id": "audit-1793626307000",
+      "userId": "user-admin-1",
+      "userName": "شادي محمد توفيق (المالك والمدير العام)",
+      "userRole": "admin",
+      "action": "UPDATE_ORDER_STATUS",
+      "entityType": "ORDER",
+      "entityId": "ord-1793618767899",
+      "details": "تحديث الحالة من CONFIRMED إلى PREPARING. ملاحظات: بدء تجهيز وتغليف المنتجات",
+      "createdAt": "2026-11-02T13:31:46.998Z"
+    },
+    {
+      "id": "audit-1793626301446",
+      "userId": "user-admin-1",
+      "userName": "شادي محمد توفيق (المالك والمدير العام)",
+      "userRole": "admin",
+      "action": "UPDATE_ORDER_STATUS",
+      "entityType": "ORDER",
+      "entityId": "ord-1793618767899",
+      "details": "تحديث الحالة من PENDING إلى CONFIRMED. ملاحظات: تم تأكيد التوفر لدى المورد",
+      "createdAt": "2026-11-02T13:31:41.443Z"
+    },
+    {
+      "id": "audit-1793618767906",
+      "userId": "guest",
+      "userName": "شادي محمد توفيق",
+      "userRole": "customer",
+      "action": "CREATE_ORDER",
+      "entityType": "ORDER",
+      "entityId": "ord-1793618767899",
+      "details": "إنشاء الطلب رقم DO-2026-1002 بإجمالي 645 ج.م",
+      "createdAt": "2026-11-02T11:26:07.899Z"
+    }
+  ],
   "addresses": [
     {
       "id": "addr-1",

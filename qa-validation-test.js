@@ -333,6 +333,43 @@ const auth = loadTs(path.join(root, 'src', 'lib', 'auth.ts'), {
   assert(arabicRoute._status === 200, 'Arabic-digit phone passes the server gate');
   assert(engineCalls === 1, 'Arabic-digit phone reaches the engine exactly once');
 
+  // 6h. Logout route must pull the cloud DB BEFORE pushing (anti-wipe guard).
+  // Regression test for the 2026-11-05 incident where a cold serverless
+  // instance pushed a stale local state on logout and wiped cloud orders.
+  {
+    let callOrder = [];
+    let pushedOrders = -1;
+    const fakeDb = {
+      users: [userWithVersion],
+      orders: [{ orderNumber: 'DO-2026-1001' }, { orderNumber: 'DO-2026-1002' }, { orderNumber: 'DO-2026-1003' }],
+      auditLogs: [],
+      notes: [],
+    };
+    const logoutRoute = loadTs(path.join(root, 'src', 'app', 'api', 'auth', 'logout', 'route.ts'), {
+      '@/lib/auth': auth,
+      '@/lib/db': {
+        getDb: () => fakeDb,
+        saveUser: (u) => { fakeDb.users[0] = u; },
+        syncCloudDb: async () => { callOrder.push('pull'); fakeDb.pulled = true; },
+        syncCloudDbPush: async (state) => { callOrder.push('push'); pushedOrders = state.orders ? state.orders.length : -1; },
+      },
+      '@/lib/types': {},
+      'next/server': {
+        NextRequest: class NextRequestShim {},
+        NextResponse: class NextResponseShim {
+          cookies = { set: () => {} };
+          static json(body) { return { body, cookies: { set: () => {} } }; }
+        },
+      },
+    });
+    // fresh valid session token for the user (sv matches current tokenVersion)
+    tokenCookieHolder.token = await auth.createSessionToken(userWithVersion);
+    await logoutRoute.POST({ cookies: { get: (name) => ({ value: tokenCookieHolder.token }) } });
+    assert(userWithVersion.tokenVersion === 2, 'Logout bumps tokenVersion server-side (1 -> 2)');
+    assert(callOrder[0] === 'pull' && callOrder.includes('push'), 'Logout pulls the cloud DB before pushing (destroy-safe order)');
+    assert(pushedOrders === 3, 'Logout push carries the full pulled state (orders preserved, not a stale local copy)');
+  }
+
   console.log('\n====================================================');
   console.log(`Result: ${passCount} passed, ${failCount} failed`);
   console.log('====================================================');

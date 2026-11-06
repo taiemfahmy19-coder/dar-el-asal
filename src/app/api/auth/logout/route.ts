@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AUTH_COOKIE_OPTIONS, verifySessionToken } from '@/lib/auth';
-import { getDb, saveUser, syncCloudDbPush } from '@/lib/db';
+import { getDb, saveUser, syncCloudDb, syncCloudDbPush } from '@/lib/db';
 
 export async function POST(req: NextRequest) {
   // Real session invalidation: bump the user's tokenVersion so that every
@@ -12,6 +12,10 @@ export async function POST(req: NextRequest) {
     if (token) {
       const session = await verifySessionToken(token);
       if (session?.userId) {
+        // CRITICAL: pull the cloud DB first so the push below never overwrites
+        // production orders with a cold instance's stale local file (this is
+        // exactly the failure mode that wiped the orders on 2026-11-05).
+        await syncCloudDb(true);
         const db = getDb();
         const user = db.users.find((u) => u.id === session.userId);
         if (user && (user.tokenVersion || 0) === ((session as { sv?: number }).sv ?? 0)) {
