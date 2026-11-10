@@ -28,15 +28,17 @@ function convertArabicDigits(raw: string): string {
  * returns the 11-digit national Egyptian number, or null when it is NOT a
  * valid Egyptian mobile number (010/011/012/015 prefix, exactly 11 digits).
  *
- * International formats (with "+", country codes) are rejected, per spec.
+ * Spaces, dashes, dots and Arabic thousand-separators are stripped BEFORE
+ * validation per spec. International formats (with "+", country codes) are
+ * still rejected, per spec.
  */
 export function normalizeEgyptianPhone(raw: unknown): string | null {
   if (raw === null || raw === undefined || typeof raw !== 'string') return null;
 
-  // Anything with a plus/country-code marker is international → reject.
-  if (/[+\-]/.test(raw)) return null;
+  // "+" marks an international format (per project spec) → reject.
+  if (/[+]/.test(raw)) return null;
 
-  const digits = convertArabicDigits(raw).replace(/[\s()\u066C_.]/g, '');
+  const digits = convertArabicDigits(raw).replace(/[\s()\u066C_.\-]/g, '');
   if (!/^\d{11}$/.test(digits)) return null;
   if (!/^01[0125]\d{8}$/.test(digits)) return null;
   return digits;

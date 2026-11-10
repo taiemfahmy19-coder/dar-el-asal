@@ -110,6 +110,13 @@ export default function CheckoutPage() {
       errs.deliveryDate = 'من فضلك اختر تاريخ استلام صحيحًا ضمن 30 يومًا قادمة وليس في الماضي.';
     }
 
+    // Human verification is a first-class field: empty answer blocks the form
+    // with a clear field-level message (and the request is still verified
+    // server-side before any order is created).
+    if (!captchaAnswer.trim()) {
+      errs.captcha = 'من فضلك أجب على سؤال التحقق البسيط أسفل النموذج.';
+    }
+
     return errs;
   };
 
@@ -122,6 +129,27 @@ export default function CheckoutPage() {
       if (prev[field] === message) return prev;
       return { ...prev, [field]: message };
     });
+
+  // ---- Auto-clearing validation (2026-11-10) ----
+  // As soon as the user tried to submit, every keystroke re-runs the full
+  // validation. When ALL fields become valid, field errors AND the generic
+  // "يرجى تصحيح الحقول" banner disappear automatically — no stale banner.
+  React.useEffect(() => {
+    if (!attemptedSubmit) return;
+    const errs = validateCheckoutFields();
+    setFieldErrors((prev) => {
+      const next: CheckoutFieldErrors = {};
+      (Object.keys(errs) as (keyof CheckoutFieldErrors)[]).forEach((k) => { next[k] = errs[k]; });
+      const same = (Object.keys(prev).length === Object.keys(next).length) &&
+        (Object.keys(prev) as (keyof CheckoutFieldErrors)[]).every((k) => prev[k] === next[k]);
+      if (same) return prev;
+      return next;
+    });
+    if (Object.keys(errs).length === 0) {
+      setError(null);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fullName, phone, email, governorate, city, streetAddress, buildingDetails, deliveryDate, deliveryTimeWindow, captcha, captchaAnswer, attemptedSubmit]);
 
   if (items.length === 0) {
     return (
@@ -200,7 +228,28 @@ export default function CheckoutPage() {
       if (!res.ok || !data.success) {
         setError(data.error || 'فشل إرسال طلب رغبة الشراء، يرجى المحاولة مرة أخرى');
         if (data.errors) {
-          setFieldErrors((prev) => ({ ...prev, ...data.errors }));
+          // The server validates with payload-key names (customerName,
+          // customerPhone, ...). Map them onto our client field keys so the
+          // server-side rejection lands right beside the offending input
+          // (aria-describedby wiring already points at these IDs).
+          const serverKeyToField: Partial<Record<string, keyof CheckoutFieldErrors>> = {
+            customerName: 'fullName',
+            customerPhone: 'phone',
+            customerEmail: 'email',
+            governorate: 'governorate',
+            city: 'city',
+            streetAddress: 'streetAddress',
+            deliveryDate: 'deliveryDate',
+            items: undefined,
+            captcha: 'captcha',
+          };
+          const mapped: CheckoutFieldErrors = {};
+          Object.entries(data.errors as Record<string, unknown>).forEach(([k, v]) => {
+            const target = serverKeyToField[k];
+            if (target && typeof v === 'string') mapped[target] = v;
+          });
+          setFieldErrors((prev) => ({ ...prev, ...mapped }));
+          setAttemptedSubmit(true);
         }
         // A failed human-verification answer always comes with a fresh question.
         if (data.errors?.captcha || (typeof data.error === 'string' && data.error.includes('تحقق'))) {
@@ -615,10 +664,12 @@ export default function CheckoutPage() {
                 )}
               </div>
 
-              {/* Submit CTA */}
+              {/* Submit CTA — hard-disabled while invalid (after an attempt)
+                  and while the request is in flight, so no order can ever be
+                  submitted twice or with broken data. */}
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || (attemptedSubmit && Object.keys(fieldErrors).length > 0)}
                 aria-busy={loading}
                 className="btn w-full inline-flex items-center justify-center gap-2 py-4 px-6 rounded-[980px] bg-[#143823] text-[#f5ebd2] font-semibold text-sm hover:bg-[#1a4a2f] border border-[#c59b27]/60 hover:scale-[1.02] active:scale-95 transition-all shadow-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
               >

@@ -19,6 +19,7 @@ export default function Footer() {
               <h4 className="font-semibold text-white text-sm mb-1 tracking-tight">منتجات طبيعية مفحوصة مخبرياً</h4>
               <p className="text-xs text-gray-300 leading-relaxed">
                 لا نبيع إلا من مناحل ومعاصر معتمدة مع فحص وتحليل مخبري مؤكد لكل دفعة.
+                تصوّر تقارير الفحص المختبري متاحة عند الطلب عبر واتساب المتجر.
               </p>
             </div>
           </div>

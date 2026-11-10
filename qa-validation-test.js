@@ -316,6 +316,16 @@ const auth = loadTs(path.join(root, 'src', 'lib', 'auth.ts'), {
     assert(engineCalls === 0, `${label} never reaches the order engine`);
   }
 
+  // 6b-b. CHECKOUT ACCEPTANCE (2026-11-10): dashes/spaces/dots are stripped
+  // from the phone BEFORE validation, then the clean 11-digit number is saved.
+  engineCalls = 0;
+  const solvedPhone = await validChallenge();
+  const cleanedPhoneRoute = await doPost({ ...okBody, customerPhone: '015-1234 5678', captchaToken: solvedPhone.token, captchaAnswer: solvedPhone.answer });
+  assert(cleanedPhoneRoute._status === 200, 'Phone with dashes/spaces survives the server gate after cleaning');
+  assert(cleanedPhoneRoute.body.order.customerPhone === '01512345678', 'Phone is stored as the clean 11-digit national number');
+  assert(engineCalls === 1, 'Cleaned phone reaches the engine exactly once');
+
+
   // 6c. Wrong email rejected by the server
   engineCalls = 0;
   const badEmailRoute = await doPost({ ...okBody, customerEmail: 'nope@@x' });
