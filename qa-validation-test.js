@@ -413,6 +413,7 @@ const auth = loadTs(path.join(root, 'src', 'lib', 'auth.ts'), {
         getUserByEmail: (email) => (email === 'real@example.test'
           ? { id: 'u-real', role: 'customer', status: 'active', passwordHash: bcrypt.hashSync('right-pass', 10) }
           : null),
+        syncCloudDb: async () => {},
       },
       '@/lib/auth': {
         comparePassword: async (pw) => pw === 'right-pass',

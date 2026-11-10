@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 import { User, UserRole } from './types';
-import { getUserById } from './db';
+import { getUserById, syncCloudDb } from './db';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'dar-el-asal-olive-secure-secret-key-2026-production'
@@ -67,6 +67,12 @@ export async function getCurrentUser(): Promise<User | null> {
 
     const session = await verifySessionToken(token);
     if (!session || !session.userId) return null;
+
+    // CRITICAL (2026-11-10): ensure the user store reflects the cloud before
+    // matching. A cold serverless instance boots from the (possibly stale)
+    // local file; without this pull, tokenVersion mismatches eject a validly
+    // signed-in user the moment their request lands on a different instance.
+    await syncCloudDb();
 
     const user = getUserById(session.userId);
     if (!user || user.status === 'suspended') return null;

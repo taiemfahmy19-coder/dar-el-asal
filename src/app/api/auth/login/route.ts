@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserByEmail } from '@/lib/db';
+import { getUserByEmail, syncCloudDb } from '@/lib/db';
 import { comparePassword, createSessionToken, sessionCookieOptionsFor } from '@/lib/auth';
 
 // ---- Brute-force guard (2026-11-06) ----
@@ -29,6 +29,10 @@ function prunable(now: number): void {
 
 export async function POST(req: NextRequest) {
   try {
+    // Ensure the user store mirrors the cloud identity data (tokenVersion,
+    // password hashes) so a session issued by this instance is accepted
+    // everywhere, not just on instances holding the same warm state.
+    await syncCloudDb();
     const { email, password } = await req.json();
 
     if (!email || !password) {
