@@ -594,6 +594,7 @@ export default function CheckoutPage() {
                 <input
                   id="checkout-captcha"
                   type="text"
+                  required
                   dir="ltr"
                   inputMode="numeric"
                   autoComplete="off"

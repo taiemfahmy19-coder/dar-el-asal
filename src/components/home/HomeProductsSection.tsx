@@ -50,7 +50,7 @@ export default function HomeProductsSection({ products }: Props) {
             منتجاتنا الطبيعية
           </h2>
           <p className="text-xs sm:text-sm text-[#515154] mt-1.5">
-            منتجات طبيعية 100% مفحوصة ومضمونة بنموذج البيع الطازج مباشرة من المعاصر والمناحل
+            منتجات طبيعية مفحوصة ومضمونة بنموذج البيع الطازج مباشرة من المعاصر والمناحل
           </p>
         </div>
 

@@ -32,8 +32,8 @@ export default function HomePage() {
                 <CheckCircle2 className="w-5 h-5 text-[#c59b27]" />
               </div>
               <div>
-                <h4 className="text-xs font-bold text-[#1d1d1f]">طبيعي ومفحوص 100%</h4>
-                <p className="text-[11px] text-[#515154] mt-0.5">خالٍ تماماً من التغذية الصناعية والسكريات</p>
+                <h4 className="text-xs font-bold text-[#1d1d1f]">طبيعي ومفحوص مخبرياً</h4>
+                <p className="text-[11px] text-[#515154] mt-0.5">خالٍ تماماً من التغذية الصناعية والسكر المضاف</p>
               </div>
             </div>
 

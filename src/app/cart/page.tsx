@@ -221,7 +221,7 @@ export default function CartPage() {
                 <div className="flex items-start justify-between text-gray-600 gap-2">
                   <span>رسوم التوصيل:</span>
                   <span className="font-bold text-forest-800 text-left text-[11px]">
-                    تُحدد بعرض السعر النهائي (حسب المنطقة)
+                    تقديري 55 ج.م (الإسكندرية) — تُعتمد نهائياً في عرض السعر
                   </span>
                 </div>
 
@@ -253,7 +253,7 @@ export default function CartPage() {
 
               <div className="flex items-center justify-center gap-1.5 text-[11px] text-gray-500 pt-1">
                 <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                <span>جميع الأعسال والزيوت مفحوصة مخبرياً ومضمونة 100%</span>
+                <span>جميع الأعسال والزيوت مفحوصة مخبرياً قبل التعبئة</span>
               </div>
 
             </div>

@@ -16,7 +16,7 @@ export default function Footer() {
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
-              <h4 className="font-semibold text-white text-sm mb-1 tracking-tight">منتجات طبيعية مفحوصة 100%</h4>
+              <h4 className="font-semibold text-white text-sm mb-1 tracking-tight">منتجات طبيعية مفحوصة مخبرياً</h4>
               <p className="text-xs text-gray-300 leading-relaxed">
                 لا نبيع إلا من مناحل ومعاصر معتمدة مع فحص وتحليل مخبري مؤكد لكل دفعة.
               </p>
