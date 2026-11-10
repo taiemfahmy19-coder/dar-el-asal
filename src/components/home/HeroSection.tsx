@@ -6,7 +6,7 @@ export default function HeroSection() {
   return (
     <section className="w-full bg-[#fcfaf6] sm:py-4 md:py-5">
       <div className="w-full sm:max-w-7xl sm:mx-auto sm:px-6 lg:px-8">
-        <div className="relative w-full overflow-hidden shadow-sm sm:border sm:border-[#d2d2d7]/60 rounded-none sm:rounded-[24px] bg-[#152317] h-[132px] sm:h-auto">
+        <div className="relative w-full overflow-hidden shadow-sm sm:border sm:border-[#d2d2d7]/60 rounded-none sm:rounded-[24px] bg-[#152317] aspect-[16/9] sm:aspect-auto">
           <img
             src="/images/dar-hero-banner-hd.jpg"
             srcSet="/images/dar-hero-banner-mobile.jpg 750w, /images/dar-hero-banner-tablet.jpg 1536w, /images/dar-hero-banner-hd.jpg 2752w"
