@@ -1,0 +1,34 @@
+{
+  "name": "دار العسل والزيتون",
+  "short_name": "دار العسل",
+  "description": "متجر دار العسل والزيتون: أفخر أنواع عسل النحل الطبيعي والسدر الجبلي، وزيت الزيتون البكر الممتاز المعصور على البارد.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "dir": "rtl",
+  "lang": "ar",
+  "theme_color": "#102d1c",
+  "background_color": "#fcfaf6",
+  "categories": ["shopping", "food"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

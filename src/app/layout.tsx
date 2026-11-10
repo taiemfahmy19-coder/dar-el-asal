@@ -10,12 +10,15 @@ import Footer from '@/components/layout/Footer';
 import FloatingMobileCartBar from '@/components/cart/FloatingMobileCartBar';
 import MobileBottomBar from '@/components/layout/MobileBottomBar';
 import BackToTop from '@/components/layout/BackToTop';
+import ServiceWorkerRegister from '@/components/pwa/ServiceWorkerRegister';
+import InstallPrompt from '@/components/pwa/InstallPrompt';
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
   viewportFit: 'cover',
+  themeColor: '#102d1c',
 };
 
 export const metadata: Metadata = {
@@ -30,6 +33,20 @@ export const metadata: Metadata = {
     'زيت زيتون سيوة',
     'عسل بالمكسرات',
   ],
+  applicationName: 'دار العسل',
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    title: 'دار العسل',
+    statusBarStyle: 'black-translucent',
+  },
+  icons: {
+    icon: [
+      { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: '/icons/apple-touch-icon.png',
+  },
 };
 
 export default function RootLayout({
@@ -65,6 +82,8 @@ export default function RootLayout({
               <FloatingMobileCartBar />
               <MobileBottomBar />
               <BackToTop />
+              <InstallPrompt />
+              <ServiceWorkerRegister />
             </WishlistProvider>
           </CartProvider>
         </AuthProvider>

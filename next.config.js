@@ -60,6 +60,30 @@ const nextConfig = {
           },
         ],
       },
+      // Service worker must ALWAYS be re-validated so a fresh publish takes
+      // over immediately (never serve a stale worker from cache).
+      {
+        source: '/sw.js',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate',
+          },
+          {
+            key: 'Service-Worker-Allowed',
+            value: '/',
+          },
+        ],
+      },
+      {
+        source: '/manifest.webmanifest',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, must-revalidate',
+          },
+        ],
+      },
     ];
   },
 };
