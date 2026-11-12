@@ -159,17 +159,28 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-300">
-          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
-            <Link href="/privacy" className="hover:text-[#c59b27] transition-colors">سياسة الخصوصية</Link>
-            <Link href="/terms" className="hover:text-[#c59b27] transition-colors">الشروط والأحكام</Link>
-            <Link href="/refund-policy" className="hover:text-[#c59b27] transition-colors">الاستبدال والاسترجاع</Link>
-            <Link href="/shipping-policy" className="hover:text-[#c59b27] transition-colors">سياسة الشحن</Link>
+        <div className="pt-8 mt-8 border-t border-white/10 flex flex-col items-center gap-5 text-xs text-gray-300">
+          {/* Store policies — prominent, always visible */}
+          <nav aria-label="سياسات المتجر" className="flex flex-wrap items-center justify-center gap-2">
+            <Link href="/privacy" className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.07] border border-white/15 text-gray-200 font-semibold text-[11px] sm:text-xs hover:bg-white/[0.12] hover:border-[#c59b27]/60 hover:text-[#c59b27] transition-all">
+              سياسة الخصوصية
+            </Link>
+            <Link href="/terms" className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.07] border border-white/15 text-gray-200 font-semibold text-[11px] sm:text-xs hover:bg-white/[0.12] hover:border-[#c59b27]/60 hover:text-[#c59b27] transition-all">
+              الشروط والأحكام
+            </Link>
+            <Link href="/refund-policy" className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.07] border border-white/15 text-gray-200 font-semibold text-[11px] sm:text-xs hover:bg-white/[0.12] hover:border-[#c59b27]/60 hover:text-[#c59b27] transition-all">
+              الاستبدال والاسترجاع
+            </Link>
+            <Link href="/shipping-policy" className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.07] border border-white/15 text-gray-200 font-semibold text-[11px] sm:text-xs hover:bg-white/[0.12] hover:border-[#c59b27]/60 hover:text-[#c59b27] transition-all">
+              سياسة الشحن
+            </Link>
+          </nav>
+          <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-3">
+            <p>© 2026 دار العسل والزيتون (DAR EL ASAL & OLIVE) — جميع الحقوق محفوظة.</p>
+            <p className="text-xs text-gray-400">
+              المالك: شادي محمد توفيق | الإسكندرية، مصر
+            </p>
           </div>
-          <p>© 2026 دار العسل والزيتون (DAR EL ASAL & OLIVE) — جميع الحقوق محفوظة.</p>
-          <p className="text-xs text-gray-400">
-            المالك: شادي محمد توفيق | الإسكندرية، مصر
-          </p>
         </div>
 
       </div>

@@ -78,12 +78,10 @@ export default function ProductCard({ product }: Props) {
       <div className="flex flex-col flex-1 justify-between gap-2">
         
         <div className="space-y-1 sm:space-y-1.5">
-          {/* Brand & Supplier Badge & Featured */}
+          {/* Featured & Supplier status only — the brand name repeats on every
+              card, so it was removed to cut visual noise */}
           <div className="flex items-center justify-between gap-1 mb-0.5">
             <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
-              <span className="text-[10px] sm:text-[11px] font-bold text-[#143823] tracking-tight">
-                دار العسل والزيتون
-              </span>
               {product.isFeatured && (
                 <span className="bg-[#143823]/5 text-[#143823] border border-[#c59b27]/40 text-[8px] sm:text-[9px] font-bold px-1 sm:px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
                   <Sparkles className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-[#c59b27]" />
@@ -101,35 +99,33 @@ export default function ProductCard({ product }: Props) {
             </h3>
           </Link>
 
-          {/* Origin & Weight Tag */}
+          {/* Origin + rating compact on one line; weight stays as the tag */}
           <div className="flex items-center justify-between text-[10px] sm:text-[11px] text-[#515154] pt-0.5 gap-1">
-            <span className="truncate">المصدر: {product.origin}</span>
+            <span className="truncate flex items-center gap-1">
+              <span className="truncate">{product.origin}</span>
+              <span className="text-[#c59b27]" aria-hidden="true">•</span>
+              <span className="flex items-center gap-0.5 shrink-0">
+                <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-500" aria-hidden="true" />
+                <span className="font-bold text-[#1d1d1f]">{product.rating}</span>
+              </span>
+            </span>
             <span className="font-semibold text-[#143823] bg-amber-50/80 border border-amber-200/60 px-1.5 sm:px-2 py-0.5 rounded-md text-[9px] sm:text-[10px] shrink-0">
               {product.weightVolume}
             </span>
           </div>
-
-          {/* Rating */}
-          <div className="flex items-center gap-1 pt-0.5">
-            <div className="flex items-center text-amber-500">
-              <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-amber-400" />
-            </div>
-            <span className="text-[11px] sm:text-xs font-bold text-[#1d1d1f]">{product.rating}</span>
-            <span className="text-[9px] sm:text-[10px] text-[#515154]">({product.reviewCount})</span>
-          </div>
         </div>
 
-        {/* Price & Action */}
-        <div className="pt-2 sm:pt-2.5 border-t border-[#d2d2d7]/40 flex flex-wrap sm:flex-nowrap items-center justify-between gap-1 sm:gap-1.5 mt-auto">
+        {/* Price first (big), then ONE primary action */}
+        <div className="pt-2 sm:pt-2.5 border-t border-[#d2d2d7]/40 flex items-center justify-between gap-2 mt-auto">
           
           <div className="flex flex-col min-w-0">
             <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
-              <span className="text-xs sm:text-sm md:text-base font-extrabold text-[#143823] whitespace-nowrap">
+              <span className="text-sm md:text-lg font-black text-[#143823] whitespace-nowrap">
                 {formatPrice(product.price)}
               </span>
               {discountPercent && (
-                <span className="bg-rose-50 text-rose-700 border border-rose-200 text-[9px] sm:text-[10px] font-bold px-1 sm:px-1.5 py-0.2 rounded-full whitespace-nowrap">
-                  %{discountPercent}-
+                <span className="bg-rose-500 text-white text-[9px] sm:text-[10px] font-extrabold px-1.5 sm:px-2 py-0.5 rounded-full whitespace-nowrap">
+                  خصم {discountPercent}%
                 </span>
               )}
             </div>
@@ -140,30 +136,31 @@ export default function ProductCard({ product }: Props) {
             )}
           </div>
 
-          <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
-            <Link
-              href={`/products/${product.id}`}
-              aria-label={`عرض تفاصيل ${product.name}`}
-              className="inline-flex items-center justify-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-[980px] text-[10px] sm:text-xs font-semibold bg-[#c59b27] text-white hover:bg-[#b0881e] active:scale-95 transition-all shadow-sm whitespace-nowrap"
-            >
-              التفاصيل
-            </Link>
-            <button
-              type="button"
-              onClick={handleAddToCart}
-              disabled={product.status === 'UNAVAILABLE'}
-              aria-label={product.status === 'UNAVAILABLE' ? `${product.name} غير متوفر حاليًا` : `إضافة ${product.name} إلى السلة`}
-              className={`p-1 sm:p-1.5 md:p-2 rounded-full border transition-all shrink-0 ${
-                product.status === 'UNAVAILABLE'
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200'
-                  : addedAnimation
-                  ? 'bg-emerald-600 text-white border-emerald-600'
-                  : 'bg-white text-[#143823] border-[#d2d2d7] hover:border-[#c59b27] hover:text-[#c59b27]'
-              }`}
-            >
-              {addedAnimation ? <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> : <ShoppingBag className="w-3 h-3 sm:w-3.5 sm:h-3.5" />}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={handleAddToCart}
+            disabled={product.status === 'UNAVAILABLE'}
+            aria-label={product.status === 'UNAVAILABLE' ? `${product.name} غير متوفر حاليًا` : `إضافة ${product.name} إلى السلة`}
+            className={`inline-flex items-center gap-1.5 justify-center px-3 sm:px-4 py-1.5 sm:py-2 rounded-[980px] text-[10px] sm:text-xs font-bold whitespace-nowrap shrink-0 transition-all active:scale-95 ${
+              product.status === 'UNAVAILABLE'
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : addedAnimation
+                ? 'bg-emerald-600 text-white shadow-sm'
+                : 'bg-[#c59b27] text-white hover:bg-[#b0881e] shadow-sm'
+            }`}
+          >
+            {addedAnimation ? (
+              <>
+                <Check className="w-3.5 h-3.5" aria-hidden="true" />
+                <span>أُضيف</span>
+              </>
+            ) : (
+              <>
+                <ShoppingBag className="w-3.5 h-3.5" aria-hidden="true" />
+                <span>{product.status === 'UNAVAILABLE' ? 'غير متوفر' : 'أضف للسلة'}</span>
+              </>
+            )}
+          </button>
 
         </div>
 

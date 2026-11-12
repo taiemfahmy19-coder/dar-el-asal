@@ -78,11 +78,7 @@ export default function Header() {
             <Link href="/products?categoryId=cat-olive-oil" className="hover:text-[#c59b27] transition-colors">
               زيت الزيتون
             </Link>
-            <Link
-              href="/#smart-package"
-              className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-[#b5892e] rounded-full border border-amber-200/80 hover:bg-amber-100 transition-colors"
-            >
-              <span className="w-2 h-2 rounded-full bg-[#c59b27] animate-pulse"></span>
+            <Link href="/#smart-package" className="hover:text-[#c59b27] transition-colors">
               اختار لك
             </Link>
             <Link href="/about" className="hover:text-[#c59b27] transition-colors">
@@ -95,7 +91,7 @@ export default function Header() {
             onSubmit={handleSearchSubmit}
             role="search"
             aria-label="البحث في المتجر"
-            className="hidden md:flex flex-1 max-w-xs xl:max-w-md relative"
+            className="hidden md:flex flex-1 max-w-[210px] xl:max-w-xs relative"
           >
             <input
               type="text"
@@ -132,29 +128,21 @@ export default function Header() {
               )}
             </Link>
 
-            {/* Cart with "السلة" label on Desktop AND Mobile */}
+            {/* Cart chip — mobile only (desktop uses the single purchase CTA) */}
             <Link
               href="/cart"
               aria-label="سلة المشتريات"
-              className="relative py-1 px-2 sm:py-2 sm:px-3 bg-[#f5f5f7] hover:bg-gold-50/70 text-[#143823] transition-all rounded-full border border-[#d2d2d7]/80 flex items-center gap-1 sm:gap-1.5 shadow-sm shrink-0"
+              className="sm:hidden relative py-1 px-2 bg-[#f5f5f7] hover:bg-gold-50/70 text-[#143823] transition-all rounded-full border border-[#d2d2d7]/80 flex items-center gap-1 shadow-sm shrink-0"
               title="سلة المشتريات"
             >
               <div className="relative">
-                <ShoppingBag className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 text-[#143823]" />
+                <ShoppingBag className="w-3.5 h-3.5 text-[#143823]" />
                 {totalItems > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-gradient-to-r from-amber-500 to-gold-500 text-forest-950 text-[9px] sm:text-[10px] w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full flex items-center justify-center font-black shadow-sm border border-white">
+                  <span className="absolute -top-2 -right-2 bg-gradient-to-r from-amber-500 to-gold-500 text-forest-950 text-[9px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-black shadow-sm border border-white">
                     {totalItems}
                   </span>
                 )}
               </div>
-              <span className="text-[11px] sm:text-xs font-bold text-[#143823]">
-                السلة
-              </span>
-              {totalItems > 0 && (
-                <span className="text-[10px] sm:text-[11px] font-bold text-[#c59b27]">
-                  ({totalItems})
-                </span>
-              )}
             </Link>
 
             {/* Prominent Purchase Button ("إتمام عملية الشراء") */}

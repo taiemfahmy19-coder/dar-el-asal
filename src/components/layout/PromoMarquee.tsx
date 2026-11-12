@@ -50,7 +50,7 @@ export default function PromoMarquee() {
             {SEQUENCE.map((item, index) => (
               <li
                 key={`${copyIndex}-${index}`}
-                className="flex items-center gap-3 px-5 whitespace-nowrap"
+                className="flex items-center gap-3 px-8 whitespace-nowrap"
                 dir="rtl"
                 aria-hidden={
                   copyIndex === 1 || index >= PROMO_ITEMS.length ? true : undefined
@@ -60,9 +60,11 @@ export default function PromoMarquee() {
                   <Sparkles className="w-3 h-3 text-[#c59b27]" aria-hidden="true" />
                 )}
                 <span className="font-semibold">{item}</span>
-                <span className="text-[#c59b27]" aria-hidden="true">
-                  •
-                </span>
+                {index < SEQUENCE.length - 1 && (
+                  <span className="text-[#c59b27]/60" aria-hidden="true">
+                    •
+                  </span>
+                )}
               </li>
             ))}
           </ul>

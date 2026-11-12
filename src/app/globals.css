@@ -198,7 +198,7 @@ textarea:focus,
   width: max-content;
   direction: ltr;
   animation-name: promoMarquee;
-  animation-duration: 24s;
+  animation-duration: 42s;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
   will-change: transform;

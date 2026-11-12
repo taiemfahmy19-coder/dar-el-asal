@@ -66,7 +66,7 @@ export default function InstallPrompt() {
     if (standalone || dismissed) return;
     const canShow = deferred !== null || (isIOS && !standalone);
     if (!canShow) return;
-    const t = window.setTimeout(() => setVisible(true), 4000);
+    const t = window.setTimeout(() => setVisible(true), 8000);
     return () => window.clearTimeout(t);
   }, [deferred, isIOS, standalone, dismissed]);
 
