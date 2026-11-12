@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { isGovernorateSupported } from '@/lib/utils';
 import { validateNewOrderPayload } from '@/lib/validation';
+import { consumeOrderRateLimit } from '@/lib/rate-limit';
 import { getOrders, syncCloudDb, syncCloudDbPush, getDb } from '@/lib/db';
 import { verifyCaptchaAnswer, CAPTCHA_ERROR_MESSAGE } from '@/lib/captcha';
 import { createOrderServerSide } from '@/lib/order-engine';
@@ -73,6 +74,45 @@ export async function POST(req: NextRequest) {
       );
     }
     const input = check.normalized;
+
+    // ---- Anti-spam rate limit (per IP): hard cap on order creation attempts ----
+    // Vercel always sends x-forwarded-for; absent IP (tests) is simply allowed.
+    const clientIp =
+      req.headers
+        ?.get('x-forwarded-for')
+        ?.split(',')[0]
+        ?.trim() || '';
+    const verdict = consumeOrderRateLimit(clientIp);
+    if (!verdict.allowed) {
+      const minutes = Math.ceil((verdict.retryAfterSeconds || 60) / 60);
+      return NextResponse.json(
+        { error: `تم إرسال عدد كبير من الطلبات من هذا الجهاز مؤقتًا. حاول بعد ${minutes} دقيقة.` },
+        { status: 429 }
+      );
+    }
+
+    // ---- Duplicate-order guard (double-tap / repeated submit) ----
+    // Instance-independent: compares against persisted orders from the last
+    // 60 seconds with the same phone + same cart. The client ref-guard stays
+    // as the first line; this closes it server-side.
+    const sixtySecondsAgo = Date.now() - 60_000;
+    const itemsKey = [...input.items]
+      .map((i) => `${i.productId}:${i.quantity}`)
+      .sort()
+      .join('|');
+    const duplicate = getOrders().find(
+      (o) =>
+        o.customerPhone === input.customerPhone &&
+        Date.parse(o.createdAt || '') > sixtySecondsAgo &&
+        Array.isArray(o.items) &&
+        [...o.items].map((i) => `${i.productId}:${i.quantity}`).sort().join('|') === itemsKey
+    );
+    if (duplicate) {
+      return NextResponse.json(
+        { error: 'يبدو أن طلبك المماثل أُسجِّل قبل لحظات؛ سيتواصل معك فريقنا قريبًا.', duplicate: true },
+        { status: 409 }
+      );
+    }
 
     // ---- Human-verification gate (last gate before the engine) ----
     // A valid field payload still needs a correct answer to a signed,

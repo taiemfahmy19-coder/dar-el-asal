@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Product } from '@/lib/types';
+import { STORAGE_KEYS } from '@/lib/config';
 
 export interface CartItem {
   product: Product;
@@ -27,7 +28,7 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-const CART_STORAGE_KEY = 'darelasal_cart_items';
+const CART_STORAGE_KEY = STORAGE_KEYS.cart;
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);

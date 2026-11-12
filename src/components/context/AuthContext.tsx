@@ -2,6 +2,8 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, UserRole } from '@/lib/types';
+import { loginRequest, logoutRequest, meRequest, registerRequest } from '@/services/auth.service';
+import { clearLocalTempData, PWA_STORAGE_KEYS } from '@/lib/config';
 
 interface AuthContextType {
   user: User | null;
@@ -14,16 +16,26 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+/** Device-level preference kept across users (PWA install banner) */
+function keepPwaPreferences() {
+  try {
+    const dismissed = localStorage.getItem(PWA_STORAGE_KEYS.installDismissed) || '';
+    clearLocalTempData();
+    if (dismissed) localStorage.setItem(PWA_STORAGE_KEYS.installDismissed, dismissed);
+  } catch {
+    clearLocalTempData();
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   const refreshUser = async () => {
     try {
-      const res = await fetch('/api/auth/me');
+      const res = await meRequest();
       if (res.ok) {
-        const data = await res.json();
-        setUser(data.user);
+        setUser(res.data.user);
       } else {
         setUser(null);
       }
@@ -40,49 +52,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await res.json();
+      const res = await loginRequest(email, password);
       if (!res.ok) {
-        return { success: false, error: data.error || 'فشل تسجيل الدخول' };
+        return { success: false, error: res.error || 'فشل تسجيل الدخول' };
       }
 
-      setUser(data.user);
-      return { success: true, role: data.user.role };
-    } catch (err: any) {
+      setUser(res.data.user);
+      return { success: true, role: res.data.user.role as UserRole };
+    } catch {
       return { success: false, error: 'حدث خطأ في الاتصال بالخادم' };
     }
   };
 
   const register = async (name: string, email: string, password: string, phone: string) => {
     try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password, phone }),
-      });
-
-      const data = await res.json();
+      const res = await registerRequest({ name, email, password, phone });
       if (!res.ok) {
-        return { success: false, error: data.error || 'فشل إنشاء الحساب' };
+        return { success: false, error: res.error || 'فشل إنشاء الحساب' };
       }
 
-      setUser(data.user);
+      setUser(res.data.user);
       return { success: true };
-    } catch (err: any) {
+    } catch {
       return { success: false, error: 'حدث خطأ في الاتصال بالخادم' };
     }
   };
 
   const logout = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      await logoutRequest();
     } finally {
       setUser(null);
+      // Full temp-data wipe on explicit logout (shared-device safety)
+      keepPwaPreferences();
       window.location.href = '/';
     }
   };

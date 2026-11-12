@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Product } from '@/lib/types';
+import { STORAGE_KEYS } from '@/lib/config';
 
 interface WishlistContextType {
   favorites: string[]; // product IDs
@@ -11,7 +12,7 @@ interface WishlistContextType {
 
 const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
 
-const WISHLIST_STORAGE_KEY = 'darelasal_wishlist_ids';
+const WISHLIST_STORAGE_KEY = STORAGE_KEYS.wishlist;
 
 export function WishlistProvider({ children }: { children: React.ReactNode }) {
   const [favorites, setFavorites] = useState<string[]>([]);

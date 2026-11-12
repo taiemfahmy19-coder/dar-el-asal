@@ -2,9 +2,10 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { X, Download, Share2, SquarePlus } from 'lucide-react';
+import { X, Download, Share2 } from 'lucide-react';
+import { PWA_STORAGE_KEYS } from '@/lib/config';
 
-const DISMISS_KEY = 'dar_pwa_install_dismissed_v1';
+const DISMISS_KEY = PWA_STORAGE_KEYS.installDismissed;
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;

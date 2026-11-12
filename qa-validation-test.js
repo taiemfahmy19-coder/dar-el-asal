@@ -61,6 +61,7 @@ console.log('====================================================\n');
 
 const root = __dirname;
 const validation = loadTs(path.join(root, 'src', 'lib', 'validation.ts'), {});
+const rateLimit = loadTs(path.join(root, 'src', 'lib', 'rate-limit.ts'), {});
 
 const utils = loadTs(path.join(root, 'src', 'lib', 'utils.ts'), { './types': {} });
 
@@ -281,6 +282,7 @@ const auth = loadTs(path.join(root, 'src', 'lib', 'auth.ts'), {
       getDb: () => ({ orders: [], users: [] }),
     },
     '@/lib/validation': validation,
+    '@/lib/rate-limit': rateLimit,
     '@/lib/utils': utils,
     '@/lib/captcha': captchaLib,
     '@/lib/order-engine': {

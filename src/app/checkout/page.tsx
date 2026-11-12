@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ShieldCheck, Truck, CreditCard, Banknote, AlertCircle, Lock } from 'lucide-react';
+import { ShieldCheck, Truck, CreditCard, Banknote, Lock } from 'lucide-react';
 import { useCart } from '@/components/context/CartContext';
 import { useAuth } from '@/components/context/AuthContext';
 import {
@@ -21,6 +21,9 @@ import {
   EGYPT_PHONE_ERROR,
   ORDER_EMAIL_ERROR,
 } from '@/lib/validation';
+import { submitOrderRequest } from '@/services/orders.service';
+import { useCaptcha } from '@/hooks/use-captcha';
+import { AlertBanner } from '@/components/ui/AlertBanner';
 
 interface CheckoutFieldErrors {
   captcha?: string;
@@ -62,20 +65,7 @@ export default function CheckoutPage() {
   const submittingRef = React.useRef(false);
 
   // ---- Human verification (arithmetic challenge, server-signed) ----
-  const [captcha, setCaptcha] = useState<{ question: string; token: string } | null>(null);
-  const [captchaAnswer, setCaptchaAnswer] = useState('');
-  const loadCaptcha = React.useCallback(() => {
-    fetch('/api/captcha')
-      .then((r) => r.json())
-      .then((d) => {
-        if (d?.question && d?.token) {
-          setCaptcha({ question: d.question, token: d.token });
-          setCaptchaAnswer('');
-        }
-      })
-      .catch(() => setCaptcha(null));
-  }, []);
-  React.useEffect(() => { loadCaptcha(); }, [loadCaptcha]);
+  const { captcha, captchaAnswer, setCaptchaAnswer, loadCaptcha } = useCaptcha();
 
   /** Runs client-side validation near the browser; the API re-runs the
       full server-side gate, so this can never be the only layer. */
@@ -217,17 +207,12 @@ export default function CheckoutPage() {
         })),
       };
 
-      const res = await fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orderPayload),
-      });
+      const { ok, data } = await submitOrderRequest(orderPayload);
 
-      const data = await res.json();
-
-      if (!res.ok || !data.success) {
-        setError(data.error || 'فشل إرسال طلب رغبة الشراء، يرجى المحاولة مرة أخرى');
-        if (data.errors) {
+      if (!ok || !data.success) {
+        setError((typeof data.error === 'string' && data.error) || 'فشل إرسال طلب رغبة الشراء، يرجى المحاولة مرة أخرى');
+        const serverErrors = data.errors as Record<string, unknown> | undefined;
+        if (serverErrors) {
           // The server validates with payload-key names (customerName,
           // customerPhone, ...). Map them onto our client field keys so the
           // server-side rejection lands right beside the offending input
@@ -244,7 +229,7 @@ export default function CheckoutPage() {
             captcha: 'captcha',
           };
           const mapped: CheckoutFieldErrors = {};
-          Object.entries(data.errors as Record<string, unknown>).forEach(([k, v]) => {
+          Object.entries(serverErrors).forEach(([k, v]) => {
             const target = serverKeyToField[k];
             if (target && typeof v === 'string') mapped[target] = v;
           });
@@ -252,7 +237,7 @@ export default function CheckoutPage() {
           setAttemptedSubmit(true);
         }
         // A failed human-verification answer always comes with a fresh question.
-        if (data.errors?.captcha || (typeof data.error === 'string' && data.error.includes('تحقق'))) {
+        if (serverErrors?.captcha || (typeof data.error === 'string' && data.error.includes('تحقق'))) {
           loadCaptcha();
         }
         setLoading(false);
@@ -261,7 +246,7 @@ export default function CheckoutPage() {
       }
 
       clearCart();
-      router.push(`/orders/confirmation?orderId=${data.order.id}`);
+      router.push(`/orders/confirmation?orderId=${data.order?.id ?? ''}`);
     } catch {
       setError('حدث خطأ في الاتصال بالخادم أثناء إرسال طلب رغبة الشراء');
       setLoading(false);
@@ -283,16 +268,7 @@ export default function CheckoutPage() {
           </p>
         </div>
 
-        {error && (
-          <div
-            role="alert"
-            aria-live="polite"
-            className="mb-6 p-4 rounded-[12px] bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2"
-          >
-            <AlertCircle className="w-4 h-4 shrink-0" aria-hidden="true" />
-            <span>{error}</span>
-          </div>
-        )}
+        <AlertBanner message={error} />
 
         <form onSubmit={handleSubmitOrder} noValidate className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           

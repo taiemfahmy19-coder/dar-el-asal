@@ -2,18 +2,23 @@
  * Dar El Asal & Olive — Service Worker
  * ------------------------------------
  * SAFE caching policy:
+ *   0. Personal routes (admin, auth, checkout, orders, account, favorites) and
+ *      ALL /api/* are NETWORK-ONLY — never written to any cache, ever. RSC
+ *      prefetch flights are treated the same (they can carry fragments of
+ *      private views).
  *   1. HTML navigations are ALWAYS network-first → users on an open tab get
  *      the freshly deployed build the moment they reload/visit (the old
- *      version can never keep running after a new publish).
+ *      version can never keep running after a new publish). The cache is
+ *      only an offline fallback.
  *   2. /api/* is NEVER cached (auth, orders, admin data stay live & private).
- *   3. Immutable Next.js chunks (/\\_next/static) are cache-first (hashed URLs).
+ *   3. Immutable Next.js chunks (/_next/static) are cache-first (hashed URLs).
  *   4. Icons / images are cache-first with a versioned cache; bumping
  *      SW_VERSION below purges every old cache on activation.
  *   5. skipWaiting + clientsClaim → the new worker takes over immediately.
  *
  * ⚠️ bump SW_VERSION in the SAME commit as every production release.
  */
-const SW_VERSION = 'dar-pwa-v1-2026-11-10';
+const SW_VERSION = 'dar-pwa-v2-2026-11-10-security';
 const STATIC_CACHE = `dar-static-${SW_VERSION}`;
 const RUNTIME_CACHE = `dar-runtime-${SW_VERSION}`;
 const OFFLINE_URL = '/';
@@ -70,6 +75,14 @@ function isPrivateApi(url) {
   return url.pathname.startsWith('/api/');
 }
 
+/** Never cache anything personal: admin/auth/checkout/orders/account pages */
+function isPersonalRoute(url) {
+  const p = url.pathname;
+  return ['/admin', '/auth', '/checkout', '/orders', '/account', '/favorites'].some(
+    (prefix) => p === prefix || p.startsWith(prefix + '/')
+  );
+}
+
 function isImmutableStatic(url) {
   return (
     url.pathname.startsWith('/_next/static/') ||
@@ -81,11 +94,17 @@ function isImmutableStatic(url) {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
 
-  // Never touch cross-origin traffic, non-GET, or anything API-related
+  // Never touch cross-origin traffic, non-GET, or anything personal/private.
+  // This includes ALL /api/* calls, personal pages, and RSC prefetch flights
+  // (which can embed fragments of account/admin views) — network only.
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
   if (isPrivateApi(url)) return; // network-only (privacy + freshness)
+  if (isPersonalRoute(url)) return; // checkout/account/orders never cached
+  if (request.headers.get('RSC') || request.headers.get('Next-Router-Prefetch')) {
+    return; // React Server Component flights stay live
+  }
 
   // 1) Document navigations: network-first, cache only as OFFLINE fallback
   if (request.mode === 'navigate') {
