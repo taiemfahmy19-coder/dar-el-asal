@@ -51,7 +51,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (isLoaded) {
       try {
-        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+        // Empty cart removes the key entirely (clean state after logout wipe)
+        if (items.length === 0) localStorage.removeItem(CART_STORAGE_KEY);
+        else localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
       } catch (e) {
         console.error('Failed to save cart to storage', e);
       }

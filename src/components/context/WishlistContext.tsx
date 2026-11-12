@@ -34,7 +34,9 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (isLoaded) {
       try {
-        localStorage.setItem(WISHLIST_STORAGE_KEY, JSON.stringify(favorites));
+        // Empty wishlist removes the key entirely (clean state after logout wipe)
+        if (favorites.length === 0) localStorage.removeItem(WISHLIST_STORAGE_KEY);
+        else localStorage.setItem(WISHLIST_STORAGE_KEY, JSON.stringify(favorites));
       } catch (e) {
         console.error('Failed to save wishlist', e);
       }
