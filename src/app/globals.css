@@ -118,8 +118,10 @@ a:hover {
 ========================================= */
 .btn {
   display: inline-block;
-  background-color: #0071e3;
-  color: #fff;
+  /* Brand forest green (was Apple blue) — every .btn usage pairs explicit
+     brand classes, so this keeps the fallback consistent with the identity */
+  background-color: #143823;
+  color: #f5ebd2;
   border: none;
   border-radius: 980px;
   padding: 12px 24px;
@@ -131,7 +133,7 @@ a:hover {
 }
 
 .btn:hover {
-  background-color: #0077ed;
+  background-color: #1a4a2f;
   transform: scale(1.02);
 }
 

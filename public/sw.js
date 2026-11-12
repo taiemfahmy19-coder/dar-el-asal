@@ -18,7 +18,7 @@
  *
  * ⚠️ bump SW_VERSION in the SAME commit as every production release.
  */
-const SW_VERSION = 'dar-pwa-v4-2026-11-12-ux-priority';
+const SW_VERSION = 'dar-pwa-v4b-2026-11-12-brand-btn';
 const STATIC_CACHE = `dar-static-${SW_VERSION}`;
 const RUNTIME_CACHE = `dar-runtime-${SW_VERSION}`;
 const OFFLINE_URL = '/';
