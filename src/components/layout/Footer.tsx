@@ -160,6 +160,12 @@ export default function Footer() {
 
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-300">
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+            <Link href="/privacy" className="hover:text-[#c59b27] transition-colors">سياسة الخصوصية</Link>
+            <Link href="/terms" className="hover:text-[#c59b27] transition-colors">الشروط والأحكام</Link>
+            <Link href="/refund-policy" className="hover:text-[#c59b27] transition-colors">الاستبدال والاسترجاع</Link>
+            <Link href="/shipping-policy" className="hover:text-[#c59b27] transition-colors">سياسة الشحن</Link>
+          </div>
           <p>© 2026 دار العسل والزيتون (DAR EL ASAL & OLIVE) — جميع الحقوق محفوظة.</p>
           <p className="text-xs text-gray-400">
             المالك: شادي محمد توفيق | الإسكندرية، مصر

@@ -1,39 +1,41 @@
-import React from 'react';
+import type { Metadata } from 'next';
+import { BRAND } from '@/lib/config';
 
-export default function PrivacyPage() {
+export const metadata: Metadata = {
+  title: `سياسة الخصوصية | ${BRAND.name}`,
+  description: 'كيف نجمع بياناتك ونحميها عند التسوق من دار العسل والزيتون.',
+};
+
+const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
+  <section className="mb-7">
+    <h2 className="text-base font-bold text-[#143823] mb-2">{title}</h2>
+    <div className="text-sm leading-relaxed text-[#515154] space-y-2">{children}</div>
+  </section>
+);
+
+export default function PrivacyPolicyPage() {
   return (
-    <div className="bg-ivory-50/50 min-h-screen py-14 text-right">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        <div>
-          <h1 className="text-2xl sm:text-4xl font-black text-forest-950 font-cairo">
-            سياسة الخصوصية وحماية البيانات
-          </h1>
-          <p className="text-xs text-gray-500 mt-1">آخر تحديث: أكتوبر 2026</p>
-        </div>
+    <main dir="rtl" className="max-w-3xl mx-auto px-4 py-10">
+      <h1 className="text-2xl font-black text-[#143823] mb-1">سياسة الخصوصية</h1>
+      <p className="text-xs text-[#515154] mb-8">آخر تحديث: نوفمبر 2026</p>
 
-        <div className="bg-white rounded-3xl p-8 border border-ivory-200 shadow-subtle space-y-6 text-xs sm:text-sm text-gray-700 leading-relaxed">
-          <section className="space-y-2">
-            <h2 className="font-bold text-base text-forest-950">1. البيانات التي نجمعها</h2>
-            <p>
-              نجمع فقط البيانات الضرورية لإتمام عمليات الشحن والتواصل: الاسم، رقم الهاتف، عنوان التوصيل، والبريد الإلكتروني. لا نطلب ولا نخزن أرقام البطاقات الائتمانية الحساسة في خوادمنا.
-            </p>
-          </section>
+      <Section title="البيانات التي نجمعها">
+        <p>نجمع فقط ما نحتاجه لإتمام طلبك: الاسم، رقم الهاتف، البريد الإلكتروني، عنوان التوصيل، وتاريخ التسليم المطلوب.</p>
+        <p>كلمات المرور تُخزَّن مشفّرة (hash) على الخادم ولا يمكن لأي طرف — بما في ذلك فريقنا — قراءتها.</p>
+      </Section>
 
-          <section className="space-y-2">
-            <h2 className="font-bold text-base text-forest-950">2. مشاركة البيانات مع مناديب التوصيل</h2>
-            <p>
-              نشارك مع مندوب التوصيل المعتمد فقط الاسم ورقم الهاتف والعنوان الضروريين لتوصيل شحنتك المحددة. لا يستطيع المندوب الاطلاع على تاريخ طلباتك الأخرى أو معلوماتك الشخصية.
-            </p>
-          </section>
+      <Section title="ما لا نخزّنه على جهازك">
+        <p>لا نحفظ في متصفحك (localStorage) أي كلمات مرور أو بيانات طلبات حساسة. ما يُحفظ محليًا يقتصر على محتويات السلة والمفضلة (أرقام المنتجات فقط).</p>
+        <p>جلسة تسجيل الدخول محفوظة في كوكي آمن (httpOnly) لا يمكن للسكربتات قراءته، وتنتهي فقط عند تسجيل الخروج اليدوي.</p>
+      </Section>
 
-          <section className="space-y-2">
-            <h2 className="font-bold text-base text-forest-950">3. أمان الحساب وكلمات المرور</h2>
-            <p>
-              تُحفظ كلمات المرور مشفرة بخوارزميات تجزئة قوية (bcrypt). لا يمكن لأي من موظفينا أو مدرائنا رؤية كلمة المرور كنص صريح.
-            </p>
-          </section>
-        </div>
-      </div>
-    </div>
+      <Section title="استخدام البيانات">
+        <p>تُستخدم بياناتك للاتصال بك لتأكيد الطلب وتسليمه فقط. لا نبيع بياناتك ولا نشاركها مع أي طرف تسويقي.</p>
+      </Section>
+
+      <Section title="حقوقك">
+        <p>يمكنك طلب تعديل أو حذف حسابك وبياناتك في أي وقت بالتواصل معنا عبر واتساب المتجر.</p>
+      </Section>
+    </main>
   );
 }

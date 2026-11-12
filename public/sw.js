@@ -18,7 +18,7 @@
  *
  * ⚠️ bump SW_VERSION in the SAME commit as every production release.
  */
-const SW_VERSION = 'dar-pwa-v2b-2026-11-12-storage-wipe';
+const SW_VERSION = 'dar-pwa-v3-2026-11-12-legal-contact';
 const STATIC_CACHE = `dar-static-${SW_VERSION}`;
 const RUNTIME_CACHE = `dar-runtime-${SW_VERSION}`;
 const OFFLINE_URL = '/';

@@ -58,3 +58,15 @@ export const SHIPPING = {
   supportedGovernorate: 'الإسكندرية',
   estimateAlexandriaEGP: 55,
 } as const;
+
+/**
+ * Public contact channels. The WhatsApp float button renders ONLY when a
+ * number is configured (international format without +, e.g. 2011XXXXXXXX).
+ */
+export const CONTACT = {
+  whatsappNumber: '',
+  get whatsappLink(): string | null {
+    if (!this.whatsappNumber) return null;
+    return `https://wa.me/${this.whatsappNumber}`;
+  },
+} as const;

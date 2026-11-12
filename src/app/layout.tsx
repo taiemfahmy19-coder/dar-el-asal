@@ -10,6 +10,7 @@ import Footer from '@/components/layout/Footer';
 import FloatingMobileCartBar from '@/components/cart/FloatingMobileCartBar';
 import MobileBottomBar from '@/components/layout/MobileBottomBar';
 import BackToTop from '@/components/layout/BackToTop';
+import WhatsAppFloat from '@/components/layout/WhatsAppFloat';
 import ServiceWorkerRegister from '@/components/pwa/ServiceWorkerRegister';
 import InstallPrompt from '@/components/pwa/InstallPrompt';
 
@@ -82,6 +83,7 @@ export default function RootLayout({
               <FloatingMobileCartBar />
               <MobileBottomBar />
               <BackToTop />
+              <WhatsAppFloat />
               <InstallPrompt />
               <ServiceWorkerRegister />
             </WishlistProvider>
